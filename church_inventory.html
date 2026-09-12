@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>명선교회 교회학교 물품 관리 시스템</title>
+<style>
+:root{
+  --bg:#F3F4EF;
+  --surface:#FFFFFF;
+  --ink:#2B3230;
+  --ink-muted:#6B7269;
+  --accent:#55735C;
+  --accent-deep:#3F5744;
+  --accent-soft:#E4EAE1;
+  --warn:#B54B2A;
+  --warn-soft:#F5E3DA;
+  --line:#DDDED4;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  font-size:15px;
+  line-height:1.5;
+  -webkit-tap-highlight-color:transparent;
+}
+button,input,select,textarea{font-family:inherit;}
+#app{
+  max-width:480px;
+  margin:0 auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  background:var(--bg);
+  position:relative;
+}
+.topbar{
+  position:sticky;top:0;z-index:5;
+  background:var(--bg);
+  border-bottom:1px solid var(--line);
+  padding:16px 18px 12px;
+}
+.topbar h1{font-size:19px;font-weight:700;margin:0;letter-spacing:-0.01em;}
+.topbar .sub{font-size:13px;color:var(--ink-muted);margin-top:2px;}
+main#content{flex:1;padding:14px 16px 24px;overflow-y:auto;}
+.tabbar{
+  position:sticky;bottom:0;z-index:5;
+  display:flex;
+  background:var(--surface);
+  border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.tabbar button{
+  flex:1;border:none;background:none;
+  padding:10px 4px 10px;font-size:12.5px;color:var(--ink-muted);
+  cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;
+}
+.tabbar button .dot{width:5px;height:5px;border-radius:50%;background:transparent;}
+.tabbar button.active{color:var(--accent-deep);font-weight:700;}
+.tabbar button.active .dot{background:var(--accent);}
+.tabbar button .badge{
+  position:absolute;top:2px;right:22%;width:7px;height:7px;border-radius:50%;background:var(--warn);
+}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.stat-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;}
+.stat-card .num{font-size:22px;font-weight:700;color:var(--accent-deep);}
+.stat-card .label{font-size:12.5px;color:var(--ink-muted);margin-top:2px;}
+
+.section-label{font-size:13.5px;font-weight:700;color:var(--ink);margin:22px 0 10px;}
+.section-label:first-child{margin-top:0;}
+
+.card-row{
+  background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line);
+  border-radius:var(--radius);padding:12px 13px;margin-bottom:9px;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+}
+.card-row.overdue{border-left-color:var(--warn);background:var(--warn-soft);}
+.card-row.loan{border-left-color:var(--accent);}
+.card-row .info{flex:1;min-width:0;}
+.card-row .title{font-weight:700;font-size:15px;}
+.card-row .meta{font-size:12.5px;color:var(--ink-muted);margin-top:3px;}
+.card-row .meta span{display:block;}
+.badge-pill{
+  font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;
+  background:var(--warn);color:#fff;
+}
+.badge-pill.soft{background:var(--accent-soft);color:var(--accent-deep);}
+
+.empty-state{
+  text-align:center;color:var(--ink-muted);font-size:13.5px;
+  padding:26px 10px;border:1px dashed var(--line);border-radius:var(--radius);
+}
+
+.searchbar{
+  width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:var(--radius);
+  font-size:14.5px;background:var(--surface);margin-bottom:14px;
+}
+.searchbar:focus{outline:none;border-color:var(--accent);}
+
+.item-row{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px 13px;margin-bottom:9px;cursor:pointer;
+  display:flex;gap:11px;align-items:center;
+}
+.item-row .thumb{
+  width:44px;height:44px;border-radius:8px;background:var(--accent-soft);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--accent-deep);
+  overflow:hidden;font-weight:700;
+}
+.item-row .thumb img{width:100%;height:100%;object-fit:cover;}
+.item-row .info{flex:1;min-width:0;}
+.item-row .title{font-weight:700;font-size:14.5px;}
+.item-row .meta{font-size:12.5px;color:var(--ink-muted);margin-top:2px;}
+.item-row .qty{font-size:13px;font-weight:700;color:var(--accent-deep);white-space:nowrap;}
+.item-row .qty.low{color:var(--warn);}
+
+.fab{
+  position:sticky;bottom:14px;margin-left:auto;display:block;
+  background:var(--accent-deep);color:#fff;border:none;border-radius:24px;
+  padding:12px 18px;font-size:14px;font-weight:700;cursor:pointer;
+  box-shadow:0 2px 8px rgba(43,50,48,0.18);
+}
+
+.loc-row{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px 13px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;
+}
+.loc-row .title{font-weight:700;font-size:14.5px;}
+.loc-row .meta{font-size:12.5px;color:var(--ink-muted);margin-top:2px;}
+.icon-btn{
+  border:none;background:none;color:var(--ink-muted);font-size:13px;cursor:pointer;
+  padding:5px 7px;font-weight:600;
+}
+.icon-btn.danger{color:var(--warn);}
+
+.add-loc-form{display:flex;gap:8px;margin-bottom:16px;}
+.add-loc-form input{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:14px;}
+.btn{
+  background:var(--accent-deep);color:#fff;border:none;border-radius:var(--radius);
+  padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;
+}
+.btn.secondary{background:var(--accent-soft);color:var(--accent-deep);}
+.btn.block{width:100%;padding:13px;font-size:15px;margin-top:6px;}
+.btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(43,50,48,0.45);z-index:20;
+  display:flex;align-items:flex-end;justify-content:center;
+}
+.modal{
+  background:var(--bg);width:100%;max-width:480px;border-radius:16px 16px 0 0;
+  padding:20px 18px calc(20px + env(safe-area-inset-bottom));
+  max-height:88vh;overflow-y:auto;
+}
+.modal h2{font-size:17px;margin:0 0 16px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12.5px;font-weight:700;color:var(--ink-muted);margin-bottom:6px;}
+.field input[type=text],.field input[type=number],.field input[type=date],.field select,.field textarea{
+  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:14.5px;background:var(--surface);
+}
+.field .checkline{display:flex;align-items:center;gap:8px;font-size:14px;}
+.field .checkline input{width:17px;height:17px;}
+.modal-actions{display:flex;gap:8px;margin-top:18px;}
+.modal-actions .btn{flex:1;}
+.photo-zone{
+  border:1px dashed var(--line);border-radius:var(--radius);padding:14px;text-align:center;margin-bottom:12px;
+}
+.photo-zone img{max-width:100%;max-height:160px;border-radius:8px;margin-bottom:10px;}
+.photo-zone .hint{font-size:12.5px;color:var(--ink-muted);margin-bottom:10px;}
+.photo-buttons{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+
+.toast{
+  position:fixed;left:50%;bottom:90px;transform:translateX(-50%);
+  background:var(--ink);color:#fff;padding:10px 18px;border-radius:20px;font-size:13.5px;
+  z-index:40;opacity:0;transition:opacity 0.2s;pointer-events:none;
+}
+.toast.show{opacity:1;}
+
+.hidden-input{display:none;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <h1 id="pageTitle">명선교회 교회학교 물품 관리 시스템</h1>
+        <div class="sub" id="pageSub">보관 장소와 대여 현황을 한눈에 관리해요</div>
+      </div>
+      <button class="icon-btn" style="border:1px solid var(--line);border-radius:8px;padding:6px 10px;" onclick="openSettingsModal()">설정</button>
+    </div>
+  </div>
+  <main id="content"></main>
+  <nav class="tabbar" id="tabbar">
+    <button data-tab="home">현황<span class="dot"></span></button>
+    <button data-tab="items">물품<span class="dot"></span></button>
+    <button data-tab="loans">대여/사용<span class="dot"></span></button>
+    <button data-tab="locations">보관장소<span class="dot"></span></button>
+  </nav>
+</div>
+<div id="modalRoot"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- state ----------
+let state = { locations: [], items: [], transactions: [] };
+let activeTab = 'home';
+let itemsSearchQuery = '';
+
+const content = document.getElementById('content');
+const modalRoot = document.getElementById('modalRoot');
+const pageSub = document.getElementById('pageSub');
+
+function uid(){
+  if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+}
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function daysBetween(a,b){ return Math.round((new Date(b) - new Date(a)) / 86400000); }
+function fmtDate(d){
+  if(!d) return '-';
+  const dt = new Date(d);
+  return (dt.getMonth()+1) + '월 ' + dt.getDate() + '일';
+}
+function escapeHtml(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(()=> t.classList.remove('show'), 2000);
+}
+
+// ---------- storage (이 파일은 브라우저에 저장되는 localStorage를 사용해요) ----------
+async function loadState(){
+  try{
+    const raw = localStorage.getItem('church-inventory-data');
+    if(raw){
+      const parsed = JSON.parse(raw);
+      state.locations = parsed.locations || [];
+      state.items = parsed.items || [];
+      state.transactions = parsed.transactions || [];
+    }
+  }catch(e){
+    console.log('저장된 데이터가 없어 새로 시작합니다.');
+  }
+  render();
+}
+async function saveState(){
+  try{
+    localStorage.setItem('church-inventory-data', JSON.stringify(state));
+  }catch(e){
+    console.error('storage save error', e);
+    showToast('저장에 실패했어요. (브라우저 저장 공간이 가득 찼을 수 있어요)');
+  }
+}
+async function persistAndRender(){
+  await saveState();
+  render();
+}
+
+// ---------- derived data ----------
+function getLocation(id){ return state.locations.find(l => l.id === id); }
+function getItem(id){ return state.items.find(i => i.id === id); }
+function itemCountAtLocation(locId){ return state.items.filter(i => i.locationId === locId).length; }
+function activeLoans(){
+  return state.transactions
+    .filter(t => t.type === 'checkout' && !t.consumable && !t.returned)
+    .sort((a,b) => (a.dueDate||'').localeCompare(b.dueDate||''));
+}
+function overdueLoans(){
+  const today = todayStr();
+  return activeLoans().filter(t => t.dueDate && t.dueDate < today);
+}
+function upcomingLoans(){
+  const today = todayStr();
+  const soon = daysBetween(today, todayStr()); // placeholder, real calc below
+  return activeLoans().filter(t => {
+    if(!t.dueDate || t.dueDate < today) return false;
+    return daysBetween(today, t.dueDate) <= 3;
+  });
+}
+function recentConsumables(){
+  return state.transactions
+    .filter(t => t.type === 'checkout' && t.consumable)
+    .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''))
+    .slice(0, 8);
+}
+
+// ---------- image helpers ----------
+function fileToCompressedBase64(file, maxDim, quality){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if(w > h){ if(w > maxDim){ h = Math.round(h * maxDim / w); w = maxDim; } }
+        else { if(h > maxDim){ w = Math.round(w * maxDim / h); h = maxDim; } }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function getApiKey(){ return localStorage.getItem('anthropic-api-key') || ''; }
+function setApiKey(key){ localStorage.setItem('anthropic-api-key', key); }
+function clearApiKey(){ localStorage.removeItem('anthropic-api-key'); }
+
+async function recognizeItemFromPhoto(dataUrl){
+  const apiKey = getApiKey();
+  if(!apiKey){
+    const err = new Error('no api key');
+    err.code = 'NO_KEY';
+    throw err;
+  }
+  const base64 = dataUrl.split(',')[1];
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-5',
+      max_tokens: 300,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
+          { type: 'text', text: '사진 속 물품이 무엇인지 한국어로 알려주세요. 다른 설명 없이 아래 JSON 형식으로만 답하세요 (마크다운 코드블록 없이): {"name": "물품 이름", "category": "카테고리(예: 문구, 간식, 도서, 비품, 미술용품 등)"}' }
+        ]
+      }]
+    })
+  });
+  if(!response.ok){
+    const errBody = await response.text();
+    const err = new Error('api error: ' + response.status + ' ' + errBody);
+    err.code = 'API_ERROR';
+    err.status = response.status;
+    throw err;
+  }
+  const data = await response.json();
+  const textBlock = (data.content || []).find(b => b.type === 'text');
+  if(!textBlock) throw new Error('no text response');
+  const clean = textBlock.text.replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+// ---------- rendering ----------
+function render(){
+  document.querySelectorAll('#tabbar button').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === activeTab);
+  });
+  const overdueCount = overdueLoans().length;
+  const loansBtn = document.querySelector('#tabbar button[data-tab="loans"]');
+  loansBtn.innerHTML = '대여/사용<span class="dot"></span>' + (overdueCount > 0 ? '<span class="badge"></span>' : '');
+
+  if(activeTab === 'home'){ pageSub.textContent = '보관 장소와 대여 현황을 한눈에 관리해요'; renderHome(); }
+  else if(activeTab === 'items'){ pageSub.textContent = '물품을 등록하고 위치를 확인해요'; renderItems(); }
+  else if(activeTab === 'loans'){ pageSub.textContent = '대여 중인 물품과 반납 예정일을 관리해요'; renderLoans(); }
+  else if(activeTab === 'locations'){ pageSub.textContent = '물품을 보관하는 장소를 관리해요'; renderLocations(); }
+}
+
+function renderHome(){
+  const overdue = overdueLoans();
+  const upcoming = upcomingLoans();
+  const loans = activeLoans();
+
+  let html = '';
+  html += '<div class="stat-grid">';
+  html += statCard(state.items.length, '전체 물품');
+  html += statCard(state.locations.length, '보관 장소');
+  html += statCard(loans.length, '대여 중');
+  html += statCard(overdue.length, '반납 연체');
+  html += '</div>';
+
+  html += '<div class="section-label">반납 예정일이 지난 물품</div>';
+  if(overdue.length === 0){
+    html += '<div class="empty-state">연체된 물품이 없어요.</div>';
+  } else {
+    overdue.forEach(t => {
+      const item = getItem(t.itemId);
+      const dOver = daysBetween(t.dueDate, todayStr());
+      html += `
+      <div class="card-row overdue">
+        <div class="info">
+          <div class="title">${escapeHtml(item ? item.name : '삭제된 물품')}</div>
+          <div class="meta">
+            <span>${escapeHtml(t.dept || '부서 미입력')} · ${escapeHtml(t.person || '담당자 미입력')} · ${t.qty}개</span>
+            <span>반납 예정일: ${fmtDate(t.dueDate)}</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+          <span class="badge-pill">${dOver}일 지남</span>
+          <button class="icon-btn" style="color:var(--accent-deep);font-weight:700;" onclick="returnLoan('${t.id}')">반납 처리</button>
+        </div>
+      </div>`;
+    });
+  }
+
+  if(upcoming.length > 0){
+    html += '<div class="section-label">곧 반납 예정 (3일 이내)</div>';
+    upcoming.forEach(t => {
+      const item = getItem(t.itemId);
+      html += `
+      <div class="card-row loan">
+        <div class="info">
+          <div class="title">${escapeHtml(item ? item.name : '삭제된 물품')}</div>
+          <div class="meta">
+            <span>${escapeHtml(t.dept || '')} · ${escapeHtml(t.person || '')} · ${t.qty}개</span>
+            <span>반납 예정일: ${fmtDate(t.dueDate)}</span>
+          </div>
+        </div>
+        <button class="icon-btn" style="color:var(--accent-deep);font-weight:700;" onclick="returnLoan('${t.id}')">반납 처리</button>
+      </div>`;
+    });
+  }
+
+  content.innerHTML = html;
+}
+function statCard(num, label){
+  return `<div class="stat-card"><div class="num">${num}</div><div class="label">${label}</div></div>`;
+}
+
+function renderItems(){
+  let html = '';
+  html += `<input class="searchbar" placeholder="물품 이름으로 찾기" value="${escapeHtml(itemsSearchQuery)}" oninput="onItemsSearch(this.value)">`;
+
+  const q = itemsSearchQuery.trim().toLowerCase();
+  let list = state.items;
+  if(q){
+    list = list.filter(i => (i.name||'').toLowerCase().includes(q) || (i.category||'').toLowerCase().includes(q));
+  }
+  list = list.slice().sort((a,b) => (a.name||'').localeCompare(b.name||''));
+
+  if(state.items.length === 0){
+    html += '<div class="empty-state">등록된 물품이 없어요.<br>아래 버튼으로 첫 물품을 등록해보세요.</div>';
+  } else if(list.length === 0){
+    html += '<div class="empty-state">검색 결과가 없어요.</div>';
+  } else {
+    list.forEach(item => {
+      const loc = getLocation(item.locationId);
+      const outNow = state.transactions.filter(t => t.itemId === item.id && t.type === 'checkout' && !t.consumable && !t.returned);
+      let statusLine = loc ? ('📍 ' + escapeHtml(loc.name)) : '보관 장소 미지정';
+      if(outNow.length > 0){
+        const names = outNow.map(t => (t.dept || t.person || '대여중')).join(', ');
+        statusLine += ' · 대여중: ' + escapeHtml(names);
+      }
+      const low = item.availableQty <= 0;
+      html += `
+      <div class="item-row" onclick="openItemDetail('${item.id}')">
+        <div class="thumb">${item.photo ? `<img src="${item.photo}">` : escapeHtml((item.name||'?').slice(0,2))}</div>
+        <div class="info">
+          <div class="title">${escapeHtml(item.name)}</div>
+          <div class="meta">${statusLine}</div>
+        </div>
+        <div class="qty ${low ? 'low' : ''}">${item.availableQty}/${item.totalQty}</div>
+      </div>`;
+    });
+  }
+
+  html += `<button class="fab" onclick="openAddItemModal()">+ 물품 등록</button>`;
+  content.innerHTML = html;
+}
+function onItemsSearch(v){ itemsSearchQuery = v; renderItems(); }
+
+function renderLoans(){
+  let html = '';
+  const loans = activeLoans();
+  html += '<div class="section-label">현재 대여 중</div>';
+  if(loans.length === 0){
+    html += '<div class="empty-state">현재 대여 중인 물품이 없어요.</div>';
+  } else {
+    const today = todayStr();
+    loans.forEach(t => {
+      const item = getItem(t.itemId);
+      const isOver = t.dueDate && t.dueDate < today;
+      html += `
+      <div class="card-row ${isOver ? 'overdue' : 'loan'}">
+        <div class="info">
+          <div class="title">${escapeHtml(item ? item.name : '삭제된 물품')}</div>
+          <div class="meta">
+            <span>${escapeHtml(t.dept || '부서 미입력')} · ${escapeHtml(t.person || '담당자 미입력')} · ${t.qty}개</span>
+            <span>반납 예정일: ${fmtDate(t.dueDate)}${isOver ? ' · ' + daysBetween(t.dueDate, today) + '일 지남' : ''}</span>
+          </div>
+        </div>
+        <button class="icon-btn" style="color:var(--accent-deep);font-weight:700;" onclick="returnLoan('${t.id}')">반납 처리</button>
+      </div>`;
+    });
+  }
+
+  const consumed = recentConsumables();
+  html += '<div class="section-label">최근 소모 내역</div>';
+  if(consumed.length === 0){
+    html += '<div class="empty-state">소모성으로 사용 처리된 물품이 없어요.</div>';
+  } else {
+    consumed.forEach(t => {
+      const item = getItem(t.itemId);
+      html += `
+      <div class="card-row">
+        <div class="info">
+          <div class="title">${escapeHtml(item ? item.name : '삭제된 물품')}</div>
+          <div class="meta"><span>${escapeHtml(t.dept || '')} ${t.person ? '· ' + escapeHtml(t.person) : ''} · ${t.qty}개 사용</span></div>
+        </div>
+        <span class="badge-pill soft">소모</span>
+      </div>`;
+    });
+  }
+
+  html += `<button class="fab" onclick="openCheckoutModal(null)">+ 대여/사용 등록</button>`;
+  content.innerHTML = html;
+}
+
+function renderLocations(){
+  let html = '';
+  html += `
+  <div class="add-loc-form">
+    <input type="text" id="newLocName" placeholder="새 보관 장소 이름 (예: 2층 창고)">
+    <button class="btn" onclick="addLocation()">추가</button>
+  </div>`;
+
+  if(state.locations.length === 0){
+    html += '<div class="empty-state">등록된 보관 장소가 없어요.<br>위에서 첫 장소를 추가해보세요.</div>';
+  } else {
+    state.locations.forEach(loc => {
+      const count = itemCountAtLocation(loc.id);
+      html += `
+      <div class="loc-row">
+        <div>
+          <div class="title">${escapeHtml(loc.name)}</div>
+          <div class="meta">물품 ${count}개 보관 중</div>
+        </div>
+        <div>
+          <button class="icon-btn" onclick="renameLocation('${loc.id}')">이름변경</button>
+          <button class="icon-btn danger" onclick="deleteLocation('${loc.id}')">삭제</button>
+        </div>
+      </div>`;
+    });
+  }
+  content.innerHTML = html;
+}
+
+// ---------- modal helpers ----------
+function openModal(html){
+  modalRoot.innerHTML = `<div class="modal-overlay" id="overlay"><div class="modal">${html}</div></div>`;
+  document.getElementById('overlay').addEventListener('click', (e) => {
+    if(e.target.id === 'overlay') closeModal();
+  });
+}
+function closeModal(){ modalRoot.innerHTML = ''; }
+
+// ---------- locations ----------
+async function addLocation(){
+  const input = document.getElementById('newLocName');
+  const name = input.value.trim();
+  if(!name){ showToast('장소 이름을 입력해주세요.'); return; }
+  state.locations.push({ id: uid(), name });
+  await persistAndRender();
+  showToast('보관 장소를 추가했어요.');
+}
+async function renameLocation(id){
+  const loc = getLocation(id);
+  if(!loc) return;
+  const name = prompt('새 이름을 입력하세요.', loc.name);
+  if(!name || !name.trim()) return;
+  loc.name = name.trim();
+  await persistAndRender();
+}
+async function deleteLocation(id){
+  const count = itemCountAtLocation(id);
+  if(count > 0){
+    alert('이 장소에 보관 중인 물품이 있어 삭제할 수 없어요. 먼저 물품의 보관 장소를 변경해주세요.');
+    return;
+  }
+  if(!confirm('이 보관 장소를 삭제할까요?')) return;
+  state.locations = state.locations.filter(l => l.id !== id);
+  await persistAndRender();
+}
+
+// ---------- settings (API 키) ----------
+function openSettingsModal(){
+  const hasKey = !!getApiKey();
+  openModal(`
+    <h2>설정</h2>
+    <div class="field">
+      <label>Anthropic API 키</label>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-..." value="${hasKey ? escapeHtml(getApiKey()) : ''}">
+      <div class="meta" style="margin-top:8px;">
+        사진 자동 인식 기능에만 사용돼요. 이 키는 이 브라우저에만 저장되며,
+        console.anthropic.com에서 발급받을 수 있어요. 키가 없어도 나머지 기능(물품 등록·대여·반납·검색·연체 관리)은 그대로 사용할 수 있어요.
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal()">닫기</button>
+      <button class="btn" onclick="saveApiKeyFromModal()">저장</button>
+    </div>
+    ${hasKey ? '<button class="btn secondary block" style="color:var(--warn);margin-top:10px;" onclick="clearApiKeyFromModal()">저장된 키 삭제</button>' : ''}
+  `);
+}
+function saveApiKeyFromModal(){
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if(!val){ showToast('API 키를 입력해주세요.'); return; }
+  setApiKey(val);
+  closeModal();
+  showToast('API 키를 저장했어요.');
+}
+function clearApiKeyFromModal(){
+  clearApiKey();
+  closeModal();
+  showToast('저장된 API 키를 삭제했어요.');
+}
+
+// ---------- items: add ----------
+let addItemPhotoDataUrl = null;
+
+function openAddItemModal(){
+  addItemPhotoDataUrl = null;
+  if(state.locations.length === 0){
+    alert('먼저 보관 장소를 하나 이상 추가해주세요.');
+    activeTab = 'locations';
+    render();
+    return;
+  }
+  const locOptions = state.locations.map(l => `<option value="${l.id}">${escapeHtml(l.name)}</option>`).join('');
+  openModal(`
+    <h2>물품 등록</h2>
+    <div class="photo-zone" id="photoZone">
+      <div class="hint">사진을 등록하면 이름을 자동으로 알아볼 수 있어요</div>
+      <div class="photo-buttons">
+        <label class="btn secondary">사진 촬영/선택<input type="file" accept="image/*" capture="environment" class="hidden-input" onchange="onAddItemPhoto(event)"></label>
+        <button class="btn secondary" id="recognizeBtn" onclick="runRecognition()" disabled>AI로 이름 인식</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>물품 이름</label>
+      <input type="text" id="fName" placeholder="예: 색종이">
+    </div>
+    <div class="field">
+      <label>카테고리 (선택)</label>
+      <input type="text" id="fCategory" placeholder="예: 미술용품">
+    </div>
+    <div class="field">
+      <label>보관 장소</label>
+      <select id="fLocation">${locOptions}</select>
+    </div>
+    <div class="field">
+      <label>총 개수</label>
+      <input type="number" id="fQty" min="1" value="1">
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal()">취소</button>
+      <button class="btn" onclick="saveNewItem()">등록</button>
+    </div>
+  `);
+}
+
+async function onAddItemPhoto(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  try{
+    addItemPhotoDataUrl = await fileToCompressedBase64(file, 500, 0.7);
+    const zone = document.getElementById('photoZone');
+    zone.querySelector('.hint').outerHTML = `<img src="${addItemPhotoDataUrl}">`;
+    document.getElementById('recognizeBtn').disabled = false;
+  }catch(e){
+    showToast('사진을 처리하지 못했어요.');
+  }
+}
+
+async function runRecognition(){
+  if(!addItemPhotoDataUrl) return;
+  if(!getApiKey()){
+    showToast('먼저 설정에서 API 키를 등록해주세요.');
+    closeModal();
+    openSettingsModal();
+    return;
+  }
+  const btn = document.getElementById('recognizeBtn');
+  btn.disabled = true;
+  btn.textContent = '인식 중...';
+  try{
+    const result = await recognizeItemFromPhoto(addItemPhotoDataUrl);
+    if(result.name) document.getElementById('fName').value = result.name;
+    if(result.category) document.getElementById('fCategory').value = result.category;
+    showToast('인식 결과를 반영했어요. 이름을 확인해주세요.');
+  }catch(e){
+    if(e.code === 'API_ERROR' && e.status === 401){
+      showToast('API 키가 올바르지 않아요. 설정에서 다시 확인해주세요.');
+    } else {
+      showToast('자동 인식에 실패했어요. 이름을 직접 입력해주세요.');
+    }
+  }
+  btn.disabled = false;
+  btn.textContent = 'AI로 이름 인식';
+}
+
+async function saveNewItem(){
+  const name = document.getElementById('fName').value.trim();
+  const category = document.getElementById('fCategory').value.trim();
+  const locationId = document.getElementById('fLocation').value;
+  const qty = parseInt(document.getElementById('fQty').value, 10);
+  if(!name){ showToast('물품 이름을 입력해주세요.'); return; }
+  if(!qty || qty < 1){ showToast('개수를 정확히 입력해주세요.'); return; }
+  state.items.push({
+    id: uid(), name, category, locationId,
+    totalQty: qty, availableQty: qty,
+    photo: addItemPhotoDataUrl || null,
+    createdAt: new Date().toISOString()
+  });
+  closeModal();
+  await persistAndRender();
+  showToast('물품을 등록했어요.');
+}
+
+// ---------- item detail ----------
+function openItemDetail(itemId){
+  const item = getItem(itemId);
+  if(!item) return;
+  const loc = getLocation(item.locationId);
+  const history = state.transactions.filter(t => t.itemId === itemId)
+    .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||'')).slice(0, 6);
+
+  let historyHtml = '';
+  if(history.length === 0){
+    historyHtml = '<div class="empty-state" style="margin-top:6px;">이용 기록이 없어요.</div>';
+  } else {
+    historyHtml = history.map(t => {
+      let label;
+      if(t.type === 'stock_in') label = '입고 +' + t.qty + '개';
+      else if(t.consumable) label = (t.dept || t.person || '사용') + ' · ' + t.qty + '개 소모';
+      else label = (t.dept || t.person || '대여') + ' · ' + t.qty + '개' + (t.returned ? ' (반납완료)' : ' (대여중)');
+      return `<div class="meta" style="margin-bottom:4px;">${escapeHtml(label)}</div>`;
+    }).join('');
+  }
+
+  openModal(`
+    <h2>${escapeHtml(item.name)}</h2>
+    <div class="field">
+      <div class="meta">보관 장소: ${loc ? escapeHtml(loc.name) : '미지정'}</div>
+      <div class="meta">카테고리: ${item.category ? escapeHtml(item.category) : '-'}</div>
+      <div class="meta">현재 수량: ${item.availableQty} / 총 ${item.totalQty}개</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" style="flex:1" onclick="closeModal(); openCheckoutModal('${item.id}')">대여/사용</button>
+      <button class="btn secondary" style="flex:1" onclick="closeModal(); openStockInModal('${item.id}')">재고 입고</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" style="flex:1" onclick="closeModal(); openEditItemModal('${item.id}')">수정</button>
+      <button class="btn secondary" style="flex:1;color:var(--warn);" onclick="deleteItem('${item.id}')">삭제</button>
+    </div>
+    <div class="section-label" style="margin-top:18px;">최근 이용 기록</div>
+    ${historyHtml}
+  `);
+}
+
+async function deleteItem(itemId){
+  const hasActiveLoan = state.transactions.some(t => t.itemId === itemId && t.type === 'checkout' && !t.consumable && !t.returned);
+  if(hasActiveLoan){
+    alert('현재 대여 중인 물품이라 삭제할 수 없어요. 먼저 반납 처리해주세요.');
+    return;
+  }
+  if(!confirm('이 물품을 삭제할까요? 이용 기록도 함께 삭제돼요.')) return;
+  state.items = state.items.filter(i => i.id !== itemId);
+  state.transactions = state.transactions.filter(t => t.itemId !== itemId);
+  closeModal();
+  await persistAndRender();
+  showToast('물품을 삭제했어요.');
+}
+
+function openEditItemModal(itemId){
+  const item = getItem(itemId);
+  if(!item) return;
+  const locOptions = state.locations.map(l =>
+    `<option value="${l.id}" ${l.id === item.locationId ? 'selected' : ''}>${escapeHtml(l.name)}</option>`
+  ).join('');
+  openModal(`
+    <h2>물품 수정</h2>
+    <div class="field">
+      <label>물품 이름</label>
+      <input type="text" id="eName" value="${escapeHtml(item.name)}">
+    </div>
+    <div class="field">
+      <label>카테고리</label>
+      <input type="text" id="eCategory" value="${escapeHtml(item.category || '')}">
+    </div>
+    <div class="field">
+      <label>보관 장소</label>
+      <select id="eLocation">${locOptions}</select>
+    </div>
+    <div class="field">
+      <label>총 개수</label>
+      <input type="number" id="eQty" min="0" value="${item.totalQty}">
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal()">취소</button>
+      <button class="btn" onclick="saveEditItem('${item.id}')">저장</button>
+    </div>
+  `);
+}
+
+async function saveEditItem(itemId){
+  const item = getItem(itemId);
+  if(!item) return;
+  const name = document.getElementById('eName').value.trim();
+  const category = document.getElementById('eCategory').value.trim();
+  const locationId = document.getElementById('eLocation').value;
+  const newTotal = parseInt(document.getElementById('eQty').value, 10);
+  if(!name){ showToast('물품 이름을 입력해주세요.'); return; }
+  const delta = newTotal - item.totalQty;
+  item.name = name;
+  item.category = category;
+  item.locationId = locationId;
+  item.totalQty = newTotal;
+  item.availableQty = Math.max(0, item.availableQty + delta);
+  closeModal();
+  await persistAndRender();
+  showToast('물품 정보를 수정했어요.');
+}
+
+// ---------- stock in ----------
+function openStockInModal(itemId){
+  const item = getItem(itemId);
+  if(!item) return;
+  openModal(`
+    <h2>${escapeHtml(item.name)} 재고 입고</h2>
+    <div class="field">
+      <label>추가할 개수</label>
+      <input type="number" id="stockQty" min="1" value="1">
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal()">취소</button>
+      <button class="btn" onclick="confirmStockIn('${item.id}')">입고 처리</button>
+    </div>
+  `);
+}
+async function confirmStockIn(itemId){
+  const item = getItem(itemId);
+  const qty = parseInt(document.getElementById('stockQty').value, 10);
+  if(!qty || qty < 1){ showToast('개수를 정확히 입력해주세요.'); return; }
+  item.totalQty += qty;
+  item.availableQty += qty;
+  state.transactions.push({
+    id: uid(), itemId, type: 'stock_in', qty,
+    createdAt: new Date().toISOString(), returned: true
+  });
+  closeModal();
+  await persistAndRender();
+  showToast('재고를 추가했어요.');
+}
+
+// ---------- checkout (대여/사용) ----------
+function openCheckoutModal(itemId){
+  let itemSelectHtml = '';
+  if(itemId){
+    const item = getItem(itemId);
+    itemSelectHtml = `<div class="field"><label>물품</label><input type="text" value="${escapeHtml(item.name)} (사용가능 ${item.availableQty}개)" disabled></div>
+      <input type="hidden" id="coItemId" value="${itemId}">`;
+  } else {
+    const options = state.items.filter(i => i.availableQty > 0)
+      .map(i => `<option value="${i.id}">${escapeHtml(i.name)} (사용가능 ${i.availableQty}개)</option>`).join('');
+    if(!options){
+      alert('대여하거나 사용할 수 있는 물품이 없어요. 먼저 물품을 등록해주세요.');
+      return;
+    }
+    itemSelectHtml = `<div class="field"><label>물품 선택</label><select id="coItemId">${options}</select></div>`;
+  }
+
+  openModal(`
+    <h2>대여/사용 등록</h2>
+    ${itemSelectHtml}
+    <div class="field">
+      <label>수량</label>
+      <input type="number" id="coQty" min="1" value="1">
+    </div>
+    <div class="field">
+      <label>빌려가는 부서</label>
+      <input type="text" id="coDept" placeholder="예: 유치부">
+    </div>
+    <div class="field">
+      <label>담당자</label>
+      <input type="text" id="coPerson" placeholder="예: 김철수 선생님">
+    </div>
+    <div class="field">
+      <label class="checkline"><input type="checkbox" id="coConsumable" onchange="toggleDueDate()"> 소모성 (이번에 사용하면 반납하지 않음)</label>
+    </div>
+    <div class="field" id="dueDateField">
+      <label>반납 예정일</label>
+      <input type="date" id="coDueDate" value="${todayStr()}">
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal()">취소</button>
+      <button class="btn" onclick="confirmCheckout()">등록</button>
+    </div>
+  `);
+}
+function toggleDueDate(){
+  const checked = document.getElementById('coConsumable').checked;
+  document.getElementById('dueDateField').style.display = checked ? 'none' : 'block';
+}
+async function confirmCheckout(){
+  const itemId = document.getElementById('coItemId').value;
+  const item = getItem(itemId);
+  if(!item){ showToast('물품을 찾을 수 없어요.'); return; }
+  const qty = parseInt(document.getElementById('coQty').value, 10);
+  const dept = document.getElementById('coDept').value.trim();
+  const person = document.getElementById('coPerson').value.trim();
+  const consumable = document.getElementById('coConsumable').checked;
+  const dueDate = consumable ? null : document.getElementById('coDueDate').value;
+
+  if(!qty || qty < 1){ showToast('수량을 정확히 입력해주세요.'); return; }
+  if(qty > item.availableQty){ showToast('사용 가능한 수량(' + item.availableQty + '개)을 초과했어요.'); return; }
+  if(!consumable && !dueDate){ showToast('반납 예정일을 입력해주세요.'); return; }
+
+  item.availableQty -= qty;
+  if(consumable) item.totalQty -= qty;
+
+  state.transactions.push({
+    id: uid(), itemId, type: 'checkout', qty, dept, person,
+    dueDate, consumable, returned: consumable, 
+    returnedAt: consumable ? new Date().toISOString() : null,
+    createdAt: new Date().toISOString()
+  });
+
+  closeModal();
+  await persistAndRender();
+  showToast(consumable ? '사용 처리했어요.' : '대여 등록을 완료했어요.');
+}
+
+async function returnLoan(transactionId){
+  const t = state.transactions.find(x => x.id === transactionId);
+  if(!t) return;
+  const item = getItem(t.itemId);
+  if(item) item.availableQty += t.qty;
+  t.returned = true;
+  t.returnedAt = new Date().toISOString();
+  await persistAndRender();
+  showToast('반납 처리했어요.');
+}
+
+// ---------- init ----------
+document.getElementById('tabbar').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-tab]');
+  if(!btn) return;
+  activeTab = btn.dataset.tab;
+  render();
+});
+
+loadState();
+</script>
+</body>
+</html>
