@@ -187,13 +187,8 @@ main#content{flex:1;padding:14px 16px 24px;overflow-y:auto;}
 <body>
 <div id="app">
   <div class="topbar">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-      <div>
-        <h1 id="pageTitle">명선교회 교회학교 물품 관리 시스템</h1>
-        <div class="sub" id="pageSub">보관 장소와 대여 현황을 한눈에 관리해요</div>
-      </div>
-      <button class="icon-btn" style="border:1px solid var(--line);border-radius:8px;padding:6px 10px;" onclick="openSettingsModal()">설정</button>
-    </div>
+    <h1 id="pageTitle">명선교회 교회학교 물품 관리 시스템</h1>
+    <div class="sub" id="pageSub">보관 장소와 대여 현황을 한눈에 관리해요</div>
   </div>
   <main id="content"></main>
   <nav class="tabbar" id="tabbar">
@@ -207,6 +202,16 @@ main#content{flex:1;padding:14px 16px 24px;overflow-y:auto;}
 <div class="toast" id="toast"></div>
 
 <script>
+// ==========================================================================
+// ⚠️ 관리자 설정: 아래 큰따옴표 사이에 본인의 Anthropic API 키를 붙여넣으세요.
+//    (console.anthropic.com 에서 발급받은 키, "sk-ant-..." 형태)
+//    이 키를 넣은 뒤 이 파일을 다른 선생님들께 전달하면,
+//    다른 사람들은 키를 몰라도 사진 인식 기능을 바로 쓸 수 있어요.
+//    단, 이 파일의 소스코드를 열어보면 이 키가 그대로 보이니
+//    신뢰할 수 있는 사람에게만 파일을 전달해주세요.
+const EMBEDDED_API_KEY = "여기에-API-키를-붙여넣으세요";
+// ==========================================================================
+
 // ---------- state ----------
 let state = { locations: [], items: [], transactions: [] };
 let activeTab = 'home';
@@ -317,9 +322,7 @@ function fileToCompressedBase64(file, maxDim, quality){
   });
 }
 
-function getApiKey(){ return localStorage.getItem('anthropic-api-key') || ''; }
-function setApiKey(key){ localStorage.setItem('anthropic-api-key', key); }
-function clearApiKey(){ localStorage.removeItem('anthropic-api-key'); }
+function getApiKey(){ return EMBEDDED_API_KEY && EMBEDDED_API_KEY !== '여기에-API-키를-붙여넣으세요' ? EMBEDDED_API_KEY : ''; }
 
 async function recognizeItemFromPhoto(dataUrl){
   const apiKey = getApiKey();
@@ -594,39 +597,6 @@ async function deleteLocation(id){
   await persistAndRender();
 }
 
-// ---------- settings (API 키) ----------
-function openSettingsModal(){
-  const hasKey = !!getApiKey();
-  openModal(`
-    <h2>설정</h2>
-    <div class="field">
-      <label>Anthropic API 키</label>
-      <input type="password" id="apiKeyInput" placeholder="sk-ant-..." value="${hasKey ? escapeHtml(getApiKey()) : ''}">
-      <div class="meta" style="margin-top:8px;">
-        사진 자동 인식 기능에만 사용돼요. 이 키는 이 브라우저에만 저장되며,
-        console.anthropic.com에서 발급받을 수 있어요. 키가 없어도 나머지 기능(물품 등록·대여·반납·검색·연체 관리)은 그대로 사용할 수 있어요.
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn secondary" onclick="closeModal()">닫기</button>
-      <button class="btn" onclick="saveApiKeyFromModal()">저장</button>
-    </div>
-    ${hasKey ? '<button class="btn secondary block" style="color:var(--warn);margin-top:10px;" onclick="clearApiKeyFromModal()">저장된 키 삭제</button>' : ''}
-  `);
-}
-function saveApiKeyFromModal(){
-  const val = document.getElementById('apiKeyInput').value.trim();
-  if(!val){ showToast('API 키를 입력해주세요.'); return; }
-  setApiKey(val);
-  closeModal();
-  showToast('API 키를 저장했어요.');
-}
-function clearApiKeyFromModal(){
-  clearApiKey();
-  closeModal();
-  showToast('저장된 API 키를 삭제했어요.');
-}
-
 // ---------- items: add ----------
 let addItemPhotoDataUrl = null;
 
@@ -687,9 +657,7 @@ async function onAddItemPhoto(evt){
 async function runRecognition(){
   if(!addItemPhotoDataUrl) return;
   if(!getApiKey()){
-    showToast('먼저 설정에서 API 키를 등록해주세요.');
-    closeModal();
-    openSettingsModal();
+    showToast('아직 자동 인식이 설정되지 않았어요. 이름을 직접 입력해주세요.');
     return;
   }
   const btn = document.getElementById('recognizeBtn');
@@ -702,7 +670,7 @@ async function runRecognition(){
     showToast('인식 결과를 반영했어요. 이름을 확인해주세요.');
   }catch(e){
     if(e.code === 'API_ERROR' && e.status === 401){
-      showToast('API 키가 올바르지 않아요. 설정에서 다시 확인해주세요.');
+      showToast('API 키가 올바르지 않아요. 관리자에게 문의해주세요.');
     } else {
       showToast('자동 인식에 실패했어요. 이름을 직접 입력해주세요.');
     }
