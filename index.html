@@ -189,6 +189,7 @@ main#content{flex:1;padding:14px 16px 24px;overflow-y:auto;}
   <div class="topbar">
     <h1 id="pageTitle">명선교회 교회학교 물품 관리 시스템</h1>
     <div class="sub" id="pageSub">보관 장소와 대여 현황을 한눈에 관리해요</div>
+    <div class="sub" id="syncStatus" style="margin-top:4px;font-size:11.5px;"></div>
   </div>
   <main id="content"></main>
   <nav class="tabbar" id="tabbar">
@@ -201,21 +202,30 @@ main#content{flex:1;padding:14px 16px 24px;overflow-y:auto;}
 <div id="modalRoot"></div>
 <div class="toast" id="toast"></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <script>
 // ==========================================================================
-// ⚠️ 관리자 설정: 아래 큰따옴표 사이에 본인의 Anthropic API 키를 붙여넣으세요.
-//    (console.anthropic.com 에서 발급받은 키, "sk-ant-..." 형태)
-//    이 키를 넣은 뒤 이 파일을 다른 선생님들께 전달하면,
-//    다른 사람들은 키를 몰라도 사진 인식 기능을 바로 쓸 수 있어요.
-//    단, 이 파일의 소스코드를 열어보면 이 키가 그대로 보이니
-//    신뢰할 수 있는 사람에게만 파일을 전달해주세요.
-const EMBEDDED_API_KEY = "여기에-API-키를-붙여넣으세요";
+// ⚠️ 관리자 설정: Firebase 프로젝트를 만든 뒤 아래 값을 붙여넣으세요.
+//    (파일 하단 안내를 참고해 무료로 5분이면 만들 수 있어요)
+//    이 값들은 Firebase 설계상 공개되어도 안전한 "공개 설정값"이에요.
+//    실제 데이터 접근 제한은 Firebase 콘솔의 "규칙(Rules)"에서 관리해요.
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCqY0eACy_09m4DDAkNlEb0FJ5nPa2NCG4",
+  authDomain: "ms-inventory-13b12.firebaseapp.com",
+  projectId: "ms-inventory-13b12",
+  storageBucket: "ms-inventory-13b12.firebasestorage.app",
+  messagingSenderId: "642887968372",
+  appId: "1:642887968372:web:1e8c651ddb55a5899a5321"
+};
 // ==========================================================================
 
 // ---------- state ----------
 let state = { locations: [], items: [], transactions: [] };
 let activeTab = 'home';
 let itemsSearchQuery = '';
+let db = null;
+let firebaseReady = false;
 
 const content = document.getElementById('content');
 const modalRoot = document.getElementById('modalRoot');
@@ -243,27 +253,70 @@ function showToast(msg){
   showToast._h = setTimeout(()=> t.classList.remove('show'), 2000);
 }
 
-// ---------- storage (이 파일은 브라우저에 저장되는 localStorage를 사용해요) ----------
-async function loadState(){
+// ---------- storage (Firebase Firestore로 모든 사용자가 데이터를 함께 봐요) ----------
+function isFirebaseConfigured(){
+  return FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf('여기에') !== 0;
+}
+function initFirebase(){
+  if(!isFirebaseConfigured()) return;
   try{
-    const raw = localStorage.getItem('church-inventory-data');
-    if(raw){
-      const parsed = JSON.parse(raw);
-      state.locations = parsed.locations || [];
-      state.items = parsed.items || [];
-      state.transactions = parsed.transactions || [];
-    }
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    firebaseReady = true;
   }catch(e){
-    console.log('저장된 데이터가 없어 새로 시작합니다.');
+    console.error('firebase init error', e);
+    firebaseReady = false;
   }
-  render();
+}
+function updateSyncStatus(){
+  const el = document.getElementById('syncStatus');
+  if(!el) return;
+  if(firebaseReady) el.textContent = '서버와 함께 저장 중 (모두가 같은 데이터를 봐요)';
+  else el.textContent = '⚠️ 서버 연결이 설정되지 않았어요 (이 기기에만 저장돼요)';
+}
+function startSync(){
+  updateSyncStatus();
+  if(!firebaseReady){
+    try{
+      const raw = localStorage.getItem('church-inventory-data');
+      if(raw){
+        const parsed = JSON.parse(raw);
+        state.locations = parsed.locations || [];
+        state.items = parsed.items || [];
+        state.transactions = parsed.transactions || [];
+      }
+    }catch(e){}
+    render();
+    return;
+  }
+  db.collection('church-inventory').doc('main').onSnapshot((doc) => {
+    if(doc.exists){
+      const data = doc.data();
+      state.locations = data.locations || [];
+      state.items = data.items || [];
+      state.transactions = data.transactions || [];
+    }
+    render();
+  }, (err) => {
+    console.error('firestore sync error', err);
+    showToast('서버 연결에 문제가 있어요. 인터넷 상태를 확인해주세요.');
+  });
 }
 async function saveState(){
+  if(!firebaseReady){
+    try{
+      localStorage.setItem('church-inventory-data', JSON.stringify(state));
+    }catch(e){
+      console.error('storage save error', e);
+      showToast('저장에 실패했어요.');
+    }
+    return;
+  }
   try{
-    localStorage.setItem('church-inventory-data', JSON.stringify(state));
+    await db.collection('church-inventory').doc('main').set(state);
   }catch(e){
-    console.error('storage save error', e);
-    showToast('저장에 실패했어요. (브라우저 저장 공간이 가득 찼을 수 있어요)');
+    console.error('firestore save error', e);
+    showToast('서버 저장에 실패했어요. 인터넷 상태를 확인해주세요.');
   }
 }
 async function persistAndRender(){
@@ -320,50 +373,6 @@ function fileToCompressedBase64(file, maxDim, quality){
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
-}
-
-function getApiKey(){ return EMBEDDED_API_KEY && EMBEDDED_API_KEY !== '여기에-API-키를-붙여넣으세요' ? EMBEDDED_API_KEY : ''; }
-
-async function recognizeItemFromPhoto(dataUrl){
-  const apiKey = getApiKey();
-  if(!apiKey){
-    const err = new Error('no api key');
-    err.code = 'NO_KEY';
-    throw err;
-  }
-  const base64 = dataUrl.split(',')[1];
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
-      max_tokens: 300,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
-          { type: 'text', text: '사진 속 물품이 무엇인지 한국어로 알려주세요. 다른 설명 없이 아래 JSON 형식으로만 답하세요 (마크다운 코드블록 없이): {"name": "물품 이름", "category": "카테고리(예: 문구, 간식, 도서, 비품, 미술용품 등)"}' }
-        ]
-      }]
-    })
-  });
-  if(!response.ok){
-    const errBody = await response.text();
-    const err = new Error('api error: ' + response.status + ' ' + errBody);
-    err.code = 'API_ERROR';
-    err.status = response.status;
-    throw err;
-  }
-  const data = await response.json();
-  const textBlock = (data.content || []).find(b => b.type === 'text');
-  if(!textBlock) throw new Error('no text response');
-  const clean = textBlock.text.replace(/```json|```/g, '').trim();
-  return JSON.parse(clean);
 }
 
 // ---------- rendering ----------
@@ -612,10 +621,9 @@ function openAddItemModal(){
   openModal(`
     <h2>물품 등록</h2>
     <div class="photo-zone" id="photoZone">
-      <div class="hint">사진을 등록하면 이름을 자동으로 알아볼 수 있어요</div>
+      <div class="hint">물품 사진을 등록해두면 목록에서 알아보기 쉬워요 (선택)</div>
       <div class="photo-buttons">
         <label class="btn secondary">사진 촬영/선택<input type="file" accept="image/*" capture="environment" class="hidden-input" onchange="onAddItemPhoto(event)"></label>
-        <button class="btn secondary" id="recognizeBtn" onclick="runRecognition()" disabled>AI로 이름 인식</button>
       </div>
     </div>
     <div class="field">
@@ -648,35 +656,9 @@ async function onAddItemPhoto(evt){
     addItemPhotoDataUrl = await fileToCompressedBase64(file, 500, 0.7);
     const zone = document.getElementById('photoZone');
     zone.querySelector('.hint').outerHTML = `<img src="${addItemPhotoDataUrl}">`;
-    document.getElementById('recognizeBtn').disabled = false;
   }catch(e){
     showToast('사진을 처리하지 못했어요.');
   }
-}
-
-async function runRecognition(){
-  if(!addItemPhotoDataUrl) return;
-  if(!getApiKey()){
-    showToast('아직 자동 인식이 설정되지 않았어요. 이름을 직접 입력해주세요.');
-    return;
-  }
-  const btn = document.getElementById('recognizeBtn');
-  btn.disabled = true;
-  btn.textContent = '인식 중...';
-  try{
-    const result = await recognizeItemFromPhoto(addItemPhotoDataUrl);
-    if(result.name) document.getElementById('fName').value = result.name;
-    if(result.category) document.getElementById('fCategory').value = result.category;
-    showToast('인식 결과를 반영했어요. 이름을 확인해주세요.');
-  }catch(e){
-    if(e.code === 'API_ERROR' && e.status === 401){
-      showToast('API 키가 올바르지 않아요. 관리자에게 문의해주세요.');
-    } else {
-      showToast('자동 인식에 실패했어요. 이름을 직접 입력해주세요.');
-    }
-  }
-  btn.disabled = false;
-  btn.textContent = 'AI로 이름 인식';
 }
 
 async function saveNewItem(){
@@ -930,7 +912,8 @@ document.getElementById('tabbar').addEventListener('click', (e) => {
   render();
 });
 
-loadState();
+initFirebase();
+startSync();
 </script>
 </body>
 </html>
