@@ -545,6 +545,33 @@ main#content {
   color: #fff;
 }
 
+.action-pill-btn.danger {
+  color: var(--rose-600);
+  border-color: rgba(225, 29, 72, 0.25);
+  background: var(--rose-50);
+}
+
+.action-pill-btn.danger:hover {
+  background: var(--rose-600);
+  border-color: var(--rose-600);
+  color: #fff;
+}
+
+.card-actions-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+@media (min-width: 480px) {
+  .card-actions-col {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
 /* Empty State */
 .empty-state {
   text-align: center;
@@ -797,15 +824,23 @@ main#content {
   padding: 4px;
   margin-bottom: 16px;
   gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.segment-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .segment-btn {
   flex: 1;
+  min-width: fit-content;
+  white-space: nowrap;
   border: none;
   background: transparent;
   padding: 8px 10px;
   border-radius: var(--radius-md);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
@@ -813,7 +848,7 @@ main#content {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .segment-btn.active {
@@ -1309,7 +1344,7 @@ let state = { locations: [], items: [], transactions: [] };
 let activeTab = 'home';
 let itemsSearchQuery = '';
 let itemsSelectedCategory = '';
-let loansSegment = 'active'; // 'active' | 'overdue' | 'consumed'
+let loansSegment = 'active'; // 'active' | 'overdue' | 'consumed' | 'lost'
 let db = null;
 let firebaseReady = false;
 
@@ -1377,19 +1412,18 @@ function updateSyncStatus(){
 
 function startSync(){
   updateSyncStatus();
-  if(!firebaseReady){
-    try{
-      const raw = localStorage.getItem('church-inventory-data');
-      if(raw){
-        const parsed = JSON.parse(raw);
-        state.locations = parsed.locations || [];
-        state.items = parsed.items || [];
-        state.transactions = parsed.transactions || [];
-      }
-    }catch(e){}
-    render();
-    return;
-  }
+  try{
+    const raw = localStorage.getItem('church-inventory-data');
+    if(raw){
+      const parsed = JSON.parse(raw);
+      state.locations = parsed.locations || [];
+      state.items = parsed.items || [];
+      state.transactions = parsed.transactions || [];
+    }
+  }catch(e){}
+  render();
+
+  if(!firebaseReady) return;
 
   db.collection('church-inventory').doc('main').onSnapshot((doc) => {
     if(doc.exists){
@@ -1397,6 +1431,7 @@ function startSync(){
       state.locations = data.locations || [];
       state.items = data.items || [];
       state.transactions = data.transactions || [];
+      try{ localStorage.setItem('church-inventory-data', JSON.stringify(state)); }catch(e){}
     }
     render();
   }, (err) => {
@@ -1454,6 +1489,11 @@ function recentConsumables(){
     .filter(t => t.type === 'checkout' && t.consumable)
     .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''))
     .slice(0, 15);
+}
+function lostTransactions(){
+  return state.transactions
+    .filter(t => t.type === 'lost')
+    .sort((a,b) => (b.date || b.createdAt || '').localeCompare(a.date || a.createdAt || ''));
 }
 
 // ---------- Image Compression Helper ----------
@@ -1638,7 +1678,10 @@ function renderHome(){
         </div>
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
           <span class="badge-pill danger">${dOver}일 지남</span>
-          <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 완료</button>
+          <div style="display:flex; gap:6px;">
+            <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 완료</button>
+            <button class="action-pill-btn danger" onclick="openReportLostModal('${t.id}')">분실</button>
+          </div>
         </div>
       </div>`;
     });
@@ -1681,7 +1724,10 @@ function renderHome(){
         </div>
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
           <span class="badge-pill warning">${daysText}</span>
-          <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 완료</button>
+          <div style="display:flex; gap:6px;">
+            <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 완료</button>
+            <button class="action-pill-btn danger" onclick="openReportLostModal('${t.id}')">분실</button>
+          </div>
         </div>
       </div>`;
     });
@@ -1826,6 +1872,7 @@ function renderLoans(){
   const loans = activeLoans();
   const overdue = overdueLoans();
   const consumed = recentConsumables();
+  const lost = lostTransactions();
 
   // Segment Controller
   html += `
@@ -1838,6 +1885,9 @@ function renderLoans(){
     </button>
     <button class="segment-btn ${loansSegment === 'consumed' ? 'active' : ''}" onclick="setLoansSegment('consumed')">
       소모 내역 (${consumed.length})
+    </button>
+    <button class="segment-btn ${loansSegment === 'lost' ? 'active' : ''}" onclick="setLoansSegment('lost')">
+      분실 내역 (${lost.length})
     </button>
   </div>
   `;
@@ -1875,7 +1925,10 @@ function renderLoans(){
               </div>
             </div>
           </div>
-          <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 완료</button>
+          <div class="card-actions-col">
+            <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 완료</button>
+            <button class="action-pill-btn danger" onclick="openReportLostModal('${t.id}')">분실 신고</button>
+          </div>
         </div>`;
       });
     }
@@ -1910,7 +1963,10 @@ function renderLoans(){
               </div>
             </div>
           </div>
-          <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 처리</button>
+          <div class="card-actions-col">
+            <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 처리</button>
+            <button class="action-pill-btn danger" onclick="openReportLostModal('${t.id}')">분실 신고</button>
+          </div>
         </div>`;
       });
     }
@@ -1945,15 +2001,72 @@ function renderLoans(){
         </div>`;
       });
     }
+  } else if(loansSegment === 'lost'){
+    if(lost.length === 0){
+      html += `
+      <div class="empty-state">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+        <div style="font-weight:700; color:var(--text-main); margin-top:8px;">분실 신고된 물품이 없습니다</div>
+        <div style="font-size:12.5px; color:var(--text-muted); margin-top:4px;">모든 대여 물품과 비품이 정상 관리되고 있습니다.</div>
+      </div>`;
+    } else {
+      html += `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding:0 2px;">
+        <span style="font-size:12.5px; color:var(--text-muted); font-weight:600;">총 ${lost.length}건의 분실 기록</span>
+        <button class="action-pill-btn danger" onclick="openReportLostModal(null)">+ 직접 분실 신고</button>
+      </div>`;
+
+      lost.forEach(t => {
+        const item = getItem(t.itemId);
+        html += `
+        <div class="card-row" style="border-left: 4px solid var(--rose-600);">
+          <div class="info">
+            <div class="title" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <span>${escapeHtml(item ? item.name : '삭제된 물품')}</span>
+              <span class="badge-pill danger" style="font-size:11px; padding:2px 7px;">${t.qty}개 분실</span>
+            </div>
+            <div class="meta">
+              <div class="meta-item">
+                <span>${escapeHtml(t.dept || '부서 미지정')}</span>
+                ${t.person ? `<span>·</span><span>${escapeHtml(t.person)}</span>` : ''}
+                <span>·</span>
+                <span style="color:var(--text-muted);">신고일: ${fmtDate(t.date || t.createdAt)}</span>
+              </div>
+              ${t.reason ? `
+              <div class="meta-item" style="color:var(--rose-600); background:var(--rose-50); padding:3px 8px; border-radius:6px; margin-top:5px; font-size:12px; display:inline-block; max-width:fit-content; border:1px solid rgba(225,29,72,0.15);">
+                사유: ${escapeHtml(t.reason)}
+              </div>` : ''}
+            </div>
+          </div>
+          <button class="action-pill-btn" style="color:var(--primary-700); border-color:rgba(64,145,108,0.3); background:var(--primary-50);" onclick="restoreLostItem('${t.id}')">
+            재고 복구
+          </button>
+        </div>`;
+      });
+    }
   }
 
-  // Floating Action Button for checkout
-  html += `
-  <button class="fab" onclick="openCheckoutModal(null)">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-    <span>대여/사용 등록</span>
-  </button>
-  `;
+  // Floating Action Button
+  if(loansSegment === 'lost'){
+    html += `
+    <button class="fab" style="background:var(--rose-600);" onclick="openReportLostModal(null)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/>
+      </svg>
+      <span>분실 신고 등록</span>
+    </button>
+    `;
+  } else {
+    html += `
+    <button class="fab" onclick="openCheckoutModal(null)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+      <span>대여/사용 등록</span>
+    </button>
+    `;
+  }
 
   content.innerHTML = html;
 }
@@ -2177,12 +2290,14 @@ function openItemDetail(itemId){
   } else {
     historyHtml = history.map(t => {
       let label;
-      if(t.type === 'stock_in'){
+      if(t.type === 'stock_in' || t.type === 'stockin'){
         label = `재고 입고 +${t.qty}개`;
+      } else if(t.type === 'lost'){
+        label = `<span style="color:var(--rose-600); font-weight:600;">[분실] ${escapeHtml(t.dept || '')} ${t.person ? '· ' + escapeHtml(t.person) : ''} · ${t.qty}개 분실</span>`;
       } else if(t.consumable){
         label = `${escapeHtml(t.dept || '')} ${t.person ? '· ' + escapeHtml(t.person) : ''} · ${t.qty}개 소모`;
       } else {
-        label = `${escapeHtml(t.dept || '')} ${t.person ? '· ' + escapeHtml(t.person) : ''} · ${t.qty}개 ${t.returned ? '(반납 완료)' : '(대여 중)'}`;
+        label = `${escapeHtml(t.dept || '')} ${t.person ? '· ' + escapeHtml(t.person) : ''} · ${t.qty}개 ${t.returned ? (t.isLost ? '(분실 처리)' : '(반납 완료)') : '(대여 중)'}`;
       }
       return `
       <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--line); font-size:13px;">
@@ -2442,6 +2557,274 @@ async function returnLoan(transactionId){
   showToast('반납 처리를 완료했습니다.');
 }
 
+// ---------- Report Lost (분실 신고 및 관리) ----------
+function openReportLostModal(loanId){
+  let targetHtml = '';
+  let maxQty = 1;
+  let defaultItem = null;
+  let defaultLoan = null;
+
+  if(loanId){
+    defaultLoan = state.transactions.find(x => x.id === loanId);
+    if(defaultLoan){
+      defaultItem = getItem(defaultLoan.itemId);
+      maxQty = defaultLoan.qty;
+    }
+  }
+
+  if(defaultLoan && defaultItem){
+    targetHtml = `
+      <div class="field">
+        <label>분실 대상 대여 물품</label>
+        <div style="background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-md); padding:10px 14px;">
+          <div style="font-weight:700; color:var(--text-main); font-size:14px;">${escapeHtml(defaultItem.name)}</div>
+          <div style="font-size:12.5px; color:var(--text-muted); margin-top:4px;">
+            대여 부서: <strong>${escapeHtml(defaultLoan.dept || '부서 미입력')}</strong> · 담당자: <strong>${escapeHtml(defaultLoan.person || '담당자 미입력')}</strong>
+          </div>
+          <div style="font-size:12px; color:var(--primary-700); font-weight:600; margin-top:2px;">
+            현재 대여 수량: ${defaultLoan.qty}개
+          </div>
+        </div>
+        <input type="hidden" id="lostLoanId" value="${defaultLoan.id}">
+        <input type="hidden" id="lostItemId" value="${defaultItem.id}">
+      </div>
+    `;
+  } else {
+    const loans = activeLoans();
+    let optionsHtml = '';
+
+    if(loans.length > 0){
+      optionsHtml += '<optgroup label="현재 대여 중인 물품">';
+      loans.forEach(l => {
+        const it = getItem(l.itemId);
+        if(it){
+          optionsHtml += `<option value="loan:${l.id}:${it.id}:${l.qty}">[대여중] ${escapeHtml(it.name)} (${escapeHtml(l.dept || '부서')} / ${escapeHtml(l.person || '담당')} - ${l.qty}개)</option>`;
+        }
+      });
+      optionsHtml += '</optgroup>';
+    }
+
+    const availItems = state.items.filter(i => i.availableQty > 0);
+    if(availItems.length > 0){
+      optionsHtml += '<optgroup label="보관 중인 물품 (대여 외 분실)">';
+      availItems.forEach(i => {
+        const loc = getLocation(i.locationId);
+        optionsHtml += `<option value="item:${i.id}:${i.availableQty}">[보관중] ${escapeHtml(i.name)} (${loc ? escapeHtml(loc.name) : '장소미지정'} - 재고 ${i.availableQty}개)</option>`;
+      });
+      optionsHtml += '</optgroup>';
+    }
+
+    if(!optionsHtml){
+      alert('분실 처리할 수 있는 대여 물품이나 재고가 없습니다.');
+      return;
+    }
+
+    targetHtml = `
+      <div class="field">
+        <label>분실 물품 선택 *</label>
+        <select id="lostSelectTarget" onchange="onLostTargetChanged(this.value)">
+          ${optionsHtml}
+        </select>
+        <input type="hidden" id="lostLoanId" value="">
+        <input type="hidden" id="lostItemId" value="">
+      </div>
+      <div class="field" id="lostDeptField" style="display:none;">
+        <label>분실 부서/장소</label>
+        <input type="text" id="lostDept" placeholder="예: 중고등부실, 유아부, 대예배실">
+      </div>
+    `;
+  }
+
+  const defaultReporter = defaultLoan ? (defaultLoan.person || '') : '';
+
+  openModal('물품 분실 신고', `
+    ${targetHtml}
+    <div class="field">
+      <label>분실 수량 *</label>
+      <input type="number" id="lostQty" min="1" max="${maxQty}" value="${maxQty}">
+      <div id="lostQtyNotice" style="font-size:12px; color:var(--text-muted); margin-top:4px;">
+        ${defaultLoan ? `전체 대여 수량 ${defaultLoan.qty}개 중 분실된 수량을 입력하세요.` : ''}
+      </div>
+    </div>
+    <div class="field">
+      <label>분실 경위 및 사유</label>
+      <input type="text" id="lostReason" placeholder="예: 행사 야외 활동 중 분실, 부서 보관 중 분실 확인">
+    </div>
+    <div class="field">
+      <label>신고 / 확인 담당자</label>
+      <input type="text" id="lostReporter" value="${escapeHtml(defaultReporter)}" placeholder="예: 담당 교사 성명">
+    </div>
+    <div class="field">
+      <label>분실 확인일</label>
+      <input type="date" id="lostDate" value="${todayStr()}">
+    </div>
+
+    <div style="background:var(--rose-50); border:1px solid rgba(225, 29, 72, 0.2); border-radius:var(--radius-md); padding:10px 14px; margin-top:14px; font-size:12px; color:var(--rose-700); line-height:1.5;">
+      <strong>⚠️ 분실 처리 시 재고 안내</strong><br>
+      분실 신고 시 해당 물품의 <strong>총 보유 수량(재고)이 차감</strong>됩니다. 나중에 물품을 다시 찾으시면 언제든 <strong>[분실 내역]</strong> 탭에서 <strong>[재고 복구]</strong>를 누를 수 있습니다.
+    </div>
+
+    <div class="modal-actions" style="margin-top:18px;">
+      <button class="btn secondary" style="flex:1;" onclick="closeModal()">취소</button>
+      <button class="btn danger" style="flex:1.5; background:var(--rose-600); border-color:var(--rose-600); color:#fff;" onclick="confirmReportLost()">분실 신고 완료</button>
+    </div>
+  `);
+
+  if(!defaultLoan){
+    const sel = document.getElementById('lostSelectTarget');
+    if(sel) onLostTargetChanged(sel.value);
+  }
+}
+
+function onLostTargetChanged(val){
+  if(!val) return;
+  const parts = val.split(':');
+  const type = parts[0];
+  const loanIdEl = document.getElementById('lostLoanId');
+  const itemIdEl = document.getElementById('lostItemId');
+  const qtyEl = document.getElementById('lostQty');
+  const noticeEl = document.getElementById('lostQtyNotice');
+  const deptField = document.getElementById('lostDeptField');
+
+  if(type === 'loan'){
+    const loanId = parts[1];
+    const itemId = parts[2];
+    const qty = parseInt(parts[3], 10);
+    loanIdEl.value = loanId;
+    itemIdEl.value = itemId;
+    qtyEl.max = qty;
+    qtyEl.value = qty;
+    if(noticeEl) noticeEl.textContent = `전체 대여 수량 ${qty}개 중 분실된 수량을 입력하세요.`;
+    if(deptField) deptField.style.display = 'none';
+
+    const loan = state.transactions.find(x => x.id === loanId);
+    if(loan && document.getElementById('lostReporter')){
+      document.getElementById('lostReporter').value = loan.person || '';
+    }
+  } else if(type === 'item'){
+    const itemId = parts[1];
+    const qty = parseInt(parts[2], 10);
+    loanIdEl.value = '';
+    itemIdEl.value = itemId;
+    qtyEl.max = qty;
+    qtyEl.value = 1;
+    if(noticeEl) noticeEl.textContent = `보관 가용 재고 ${qty}개 중 분실 수량을 입력하세요.`;
+    if(deptField) deptField.style.display = 'block';
+  }
+}
+
+async function confirmReportLost(){
+  const loanId = document.getElementById('lostLoanId')?.value;
+  const itemId = document.getElementById('lostItemId')?.value;
+  const lostQty = parseInt(document.getElementById('lostQty').value, 10);
+  const reason = document.getElementById('lostReason').value.trim();
+  const reporter = document.getElementById('lostReporter').value.trim();
+  const lostDate = document.getElementById('lostDate').value || todayStr();
+
+  if(!itemId){
+    showToast('분실 대상 물품을 선택해주세요.');
+    return;
+  }
+  const item = getItem(itemId);
+  if(!item){
+    showToast('물품을 찾을 수 없습니다.');
+    return;
+  }
+  if(!lostQty || lostQty < 1){
+    showToast('분실 수량을 1개 이상 입력해주세요.');
+    return;
+  }
+
+  if(loanId){
+    const loan = state.transactions.find(x => x.id === loanId);
+    if(!loan){ showToast('대여 내역을 찾을 수 없습니다.'); return; }
+    if(lostQty > loan.qty){
+      showToast(`분실 수량은 대여 수량(${loan.qty}개)을 초과할 수 없습니다.`);
+      return;
+    }
+
+    item.totalQty = Math.max(0, item.totalQty - lostQty);
+    item.availableQty = Math.min(item.availableQty, item.totalQty);
+
+    if(lostQty === loan.qty){
+      loan.returned = true;
+      loan.isLost = true;
+      loan.lostAt = lostDate;
+      loan.lostReason = reason;
+      loan.lostReporter = reporter || loan.person;
+    } else {
+      loan.qty -= lostQty;
+    }
+
+    state.transactions.push({
+      id: uid(),
+      itemId: item.id,
+      type: 'lost',
+      qty: lostQty,
+      dept: loan.dept || '',
+      person: reporter || loan.person || '',
+      reason: reason || '대여 중 분실',
+      date: lostDate,
+      loanId: loan.id,
+      createdAt: new Date().toISOString()
+    });
+  } else {
+    if(lostQty > item.availableQty){
+      showToast(`분실 수량이 가용 재고(${item.availableQty}개)를 초과할 수 없습니다.`);
+      return;
+    }
+    const dept = document.getElementById('lostDept')?.value.trim() || '';
+    item.totalQty = Math.max(0, item.totalQty - lostQty);
+    item.availableQty = Math.max(0, item.availableQty - lostQty);
+
+    state.transactions.push({
+      id: uid(),
+      itemId: item.id,
+      type: 'lost',
+      qty: lostQty,
+      dept: dept,
+      person: reporter,
+      reason: reason || '보관 중 분실',
+      date: lostDate,
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  closeModal();
+  await persistAndRender();
+  showToast('분실 신고 처리가 완료되었습니다.');
+}
+
+async function restoreLostItem(transactionId){
+  const t = state.transactions.find(x => x.id === transactionId);
+  if(!t) return;
+  const item = getItem(t.itemId);
+  const itemName = item ? item.name : '해당 물품';
+
+  if(!confirm(`[${itemName}] ${t.qty}개의 분실 처리를 취소하고, 재고로 다시 복구하시겠습니까?`)){
+    return;
+  }
+
+  if(item){
+    item.totalQty += t.qty;
+    item.availableQty += t.qty;
+  }
+
+  state.transactions = state.transactions.filter(x => x.id !== transactionId);
+
+  if(t.loanId){
+    const loan = state.transactions.find(x => x.id === t.loanId);
+    if(loan && loan.isLost){
+      loan.returned = true;
+      loan.returnedAt = new Date().toISOString();
+      delete loan.isLost;
+    }
+  }
+
+  await persistAndRender();
+  showToast('재고가 정상적으로 복구되었습니다.');
+}
+
 // ---------- Tab Click Event Delegation ----------
 document.getElementById('tabbar').addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-tab]');
@@ -2450,9 +2833,18 @@ document.getElementById('tabbar').addEventListener('click', (e) => {
   render();
 });
 
+// ---------- URL Params Handling ----------
+const urlParams = new URLSearchParams(window.location.search);
+if(urlParams.get('tab')) activeTab = urlParams.get('tab');
+if(urlParams.get('segment')) loansSegment = urlParams.get('segment');
+
 // ---------- Initialization ----------
 initFirebase();
 startSync();
+
+if(urlParams.get('modal') === 'reportLost'){
+  setTimeout(() => openReportLostModal(urlParams.get('loanId') || null), 200);
+}
 </script>
 </body>
 </html>
