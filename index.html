@@ -4,212 +4,1296 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>명선교회 교회학교 물품 관리 시스템</title>
+<!-- Pretendard Web Font -->
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <style>
-:root{
-  --bg:#F3F4EF;
-  --surface:#FFFFFF;
-  --ink:#2B3230;
-  --ink-muted:#6B7269;
-  --accent:#55735C;
-  --accent-deep:#3F5744;
-  --accent-soft:#E4EAE1;
-  --warn:#B54B2A;
-  --warn-soft:#F5E3DA;
-  --line:#DDDED4;
-  --radius:10px;
-}
-*{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
-body{
-  background:var(--bg);
-  color:var(--ink);
-  font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;
-  font-size:15px;
-  line-height:1.5;
-  -webkit-tap-highlight-color:transparent;
-}
-button,input,select,textarea{font-family:inherit;}
-#app{
-  max-width:480px;
-  margin:0 auto;
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  background:var(--bg);
-  position:relative;
-}
-.topbar{
-  position:sticky;top:0;z-index:5;
-  background:var(--bg);
-  border-bottom:1px solid var(--line);
-  padding:16px 18px 12px;
-}
-.topbar h1{font-size:19px;font-weight:700;margin:0;letter-spacing:-0.01em;}
-.topbar .sub{font-size:13px;color:var(--ink-muted);margin-top:2px;}
-main#content{flex:1;padding:14px 16px 24px;overflow-y:auto;}
-.tabbar{
-  position:sticky;bottom:0;z-index:5;
-  display:flex;
-  background:var(--surface);
-  border-top:1px solid var(--line);
-  padding-bottom:env(safe-area-inset-bottom);
-}
-.tabbar button{
-  flex:1;border:none;background:none;
-  padding:10px 4px 10px;font-size:12.5px;color:var(--ink-muted);
-  cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;
-}
-.tabbar button .dot{width:5px;height:5px;border-radius:50%;background:transparent;}
-.tabbar button.active{color:var(--accent-deep);font-weight:700;}
-.tabbar button.active .dot{background:var(--accent);}
-.tabbar button .badge{
-  position:absolute;top:2px;right:22%;width:7px;height:7px;border-radius:50%;background:var(--warn);
+:root {
+  /* Brand Emerald Palette */
+  --primary-900: #0D3321;
+  --primary-800: #1B4332;
+  --primary-700: #2D6A4F;
+  --primary-600: #40916C;
+  --primary-500: #52B788;
+  --primary-100: #E8F5EE;
+  --primary-50:  #F2F9F5;
+
+  /* Neutral Slate Palette */
+  --bg-page: #F1F5F9;
+  --surface: #FFFFFF;
+  --surface-hover: #F8FAFC;
+  --surface-alt: #F8FAFC;
+  --line: #E2E8F0;
+  --line-subtle: #F1F5F9;
+  --text-main: #0F172A;
+  --text-muted: #64748B;
+  --text-subtle: #94A3B8;
+
+  /* Functional Accents */
+  --rose-600: #E11D48;
+  --rose-100: #FFE4E6;
+  --rose-50:  #FFF1F2;
+  --amber-600: #D97706;
+  --amber-100: #FEF3C7;
+  --amber-50:  #FFFBEB;
+  --blue-600: #2563EB;
+  --blue-100: #DBEAFE;
+  --blue-50:  #EFF6FF;
+
+  /* Radius & Shadows */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 1px 3px 0 rgba(15, 23, 42, 0.03);
+  --shadow-float: 0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.06);
+  --shadow-modal: 0 24px 48px -12px rgba(15, 23, 42, 0.25);
 }
 
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
-.stat-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;}
-.stat-card .num{font-size:22px;font-weight:700;color:var(--accent-deep);}
-.stat-card .label{font-size:12.5px;color:var(--ink-muted);margin-top:2px;}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-.section-label{font-size:13.5px;font-weight:700;color:var(--ink);margin:22px 0 10px;}
-.section-label:first-child{margin-top:0;}
-
-.card-row{
-  background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line);
-  border-radius:var(--radius);padding:12px 13px;margin-bottom:9px;
-  display:flex;justify-content:space-between;align-items:center;gap:10px;
-}
-.card-row.overdue{border-left-color:var(--warn);background:var(--warn-soft);}
-.card-row.loan{border-left-color:var(--accent);}
-.card-row .info{flex:1;min-width:0;}
-.card-row .title{font-weight:700;font-size:15px;}
-.card-row .meta{font-size:12.5px;color:var(--ink-muted);margin-top:3px;}
-.card-row .meta span{display:block;}
-.badge-pill{
-  font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;
-  background:var(--warn);color:#fff;
-}
-.badge-pill.soft{background:var(--accent-soft);color:var(--accent-deep);}
-
-.empty-state{
-  text-align:center;color:var(--ink-muted);font-size:13.5px;
-  padding:26px 10px;border:1px dashed var(--line);border-radius:var(--radius);
+body {
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
 }
 
-.searchbar{
-  width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:var(--radius);
-  font-size:14.5px;background:var(--surface);margin-bottom:14px;
-}
-.searchbar:focus{outline:none;border-color:var(--accent);}
-
-.item-row{
-  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
-  padding:12px 13px;margin-bottom:9px;cursor:pointer;
-  display:flex;gap:11px;align-items:center;
-}
-.item-row .thumb{
-  width:44px;height:44px;border-radius:8px;background:var(--accent-soft);flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--accent-deep);
-  overflow:hidden;font-weight:700;
-}
-.item-row .thumb img{width:100%;height:100%;object-fit:cover;}
-.item-row .info{flex:1;min-width:0;}
-.item-row .title{font-weight:700;font-size:14.5px;}
-.item-row .meta{font-size:12.5px;color:var(--ink-muted);margin-top:2px;}
-.item-row .qty{font-size:13px;font-weight:700;color:var(--accent-deep);white-space:nowrap;}
-.item-row .qty.low{color:var(--warn);}
-
-.fab{
-  position:sticky;bottom:14px;margin-left:auto;display:block;
-  background:var(--accent-deep);color:#fff;border:none;border-radius:24px;
-  padding:12px 18px;font-size:14px;font-weight:700;cursor:pointer;
-  box-shadow:0 2px 8px rgba(43,50,48,0.18);
+button, input, select, textarea {
+  font-family: inherit;
+  color: inherit;
 }
 
-.loc-row{
-  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
-  padding:12px 13px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;
+/* App Container Layout */
+#app {
+  width: 100%;
+  max-width: 640px;
+  min-height: 100vh;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 0 40px rgba(15, 23, 42, 0.06);
 }
-.loc-row .title{font-weight:700;font-size:14.5px;}
-.loc-row .meta{font-size:12.5px;color:var(--ink-muted);margin-top:2px;}
-.icon-btn{
-  border:none;background:none;color:var(--ink-muted);font-size:13px;cursor:pointer;
-  padding:5px 7px;font-weight:600;
-}
-.icon-btn.danger{color:var(--warn);}
 
-.add-loc-form{display:flex;gap:8px;margin-bottom:16px;}
-.add-loc-form input{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:14px;}
-.btn{
-  background:var(--accent-deep);color:#fff;border:none;border-radius:var(--radius);
-  padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;
+/* Top Navigation Bar */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 20px 14px;
 }
-.btn.secondary{background:var(--accent-soft);color:var(--accent-deep);}
-.btn.block{width:100%;padding:13px;font-size:15px;margin-top:6px;}
-.btn:disabled{opacity:0.5;cursor:not-allowed;}
 
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(43,50,48,0.45);z-index:20;
-  display:flex;align-items:flex-end;justify-content:center;
+.topbar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
-.modal{
-  background:var(--bg);width:100%;max-width:480px;border-radius:16px 16px 0 0;
-  padding:20px 18px calc(20px + env(safe-area-inset-bottom));
-  max-height:88vh;overflow-y:auto;
-}
-.modal h2{font-size:17px;margin:0 0 16px;}
-.field{margin-bottom:14px;}
-.field label{display:block;font-size:12.5px;font-weight:700;color:var(--ink-muted);margin-bottom:6px;}
-.field input[type=text],.field input[type=number],.field input[type=date],.field select,.field textarea{
-  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:14.5px;background:var(--surface);
-}
-.field .checkline{display:flex;align-items:center;gap:8px;font-size:14px;}
-.field .checkline input{width:17px;height:17px;}
-.modal-actions{display:flex;gap:8px;margin-top:18px;}
-.modal-actions .btn{flex:1;}
-.photo-zone{
-  border:1px dashed var(--line);border-radius:var(--radius);padding:14px;text-align:center;margin-bottom:12px;
-}
-.photo-zone img{max-width:100%;max-height:160px;border-radius:8px;margin-bottom:10px;}
-.photo-zone .hint{font-size:12.5px;color:var(--ink-muted);margin-bottom:10px;}
-.photo-buttons{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
 
-.toast{
-  position:fixed;left:50%;bottom:90px;transform:translateX(-50%);
-  background:var(--ink);color:#fff;padding:10px 18px;border-radius:20px;font-size:13.5px;
-  z-index:40;opacity:0;transition:opacity 0.2s;pointer-events:none;
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 11px;
 }
-.toast.show{opacity:1;}
 
-.hidden-input{display:none;}
+.brand-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--primary-700), var(--primary-800));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(27, 67, 50, 0.2);
+  flex-shrink: 0;
+}
+
+.brand-info h1 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.brand-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary-700);
+  background: var(--primary-100);
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+}
+
+.brand-info .sub {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+/* Live Sync Pill */
+.sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 4px 9px;
+  border-radius: var(--radius-full);
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.sync-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-subtle);
+}
+
+.sync-badge.synced {
+  background: var(--primary-50);
+  border-color: rgba(64, 145, 108, 0.3);
+  color: var(--primary-800);
+}
+
+.sync-badge.synced .sync-dot {
+  background: #10B981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+  animation: pulse-green 2s infinite;
+}
+
+.sync-badge.warning {
+  background: var(--amber-50);
+  border-color: rgba(217, 119, 6, 0.3);
+  color: var(--amber-600);
+}
+
+.sync-badge.warning .sync-dot {
+  background: var(--amber-600);
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+/* Content Area */
+main#content {
+  flex: 1;
+  padding: 20px 20px calc(85px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: var(--surface-alt);
+}
+
+/* Bottom Tab Navigation Bar */
+.tabbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--line);
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.tab-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 8px 4px 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+  border-radius: var(--radius-md);
+  transition: all 0.18s ease;
+}
+
+.tab-btn:hover {
+  color: var(--primary-700);
+  background: rgba(45, 106, 79, 0.04);
+}
+
+.tab-btn .tab-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease;
+}
+
+.tab-btn .tab-label {
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.tab-btn.active {
+  color: var(--primary-700);
+}
+
+.tab-btn.active .tab-icon {
+  transform: translateY(-1px);
+}
+
+.tab-btn.active .tab-label {
+  font-weight: 700;
+}
+
+.tab-btn .badge-count {
+  position: absolute;
+  top: 4px;
+  right: calc(50% - 18px);
+  background: var(--rose-600);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid #fff;
+}
+
+/* Stat Grid (Dashboard) */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card);
+}
+
+.stat-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon-wrapper.green { background: var(--primary-100); color: var(--primary-700); }
+.stat-icon-wrapper.blue  { background: var(--blue-100); color: var(--blue-600); }
+.stat-icon-wrapper.amber { background: var(--amber-100); color: var(--amber-600); }
+.stat-icon-wrapper.rose  { background: var(--rose-100); color: var(--rose-600); }
+
+.stat-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-num {
+  font-size: 23px;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+/* Section Header */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 24px 0 12px;
+}
+
+.section-header:first-child {
+  margin-top: 0;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: -0.01em;
+}
+
+.section-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+}
+
+.section-badge.rose { background: var(--rose-100); color: var(--rose-600); }
+.section-badge.amber { background: var(--amber-100); color: var(--amber-600); }
+.section-badge.green { background: var(--primary-100); color: var(--primary-700); }
+
+/* Quick Action Row */
+.quick-action-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.quick-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 11px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.quick-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--primary-500);
+  color: var(--primary-700);
+}
+
+.quick-btn.primary {
+  background: var(--primary-700);
+  border-color: var(--primary-700);
+  color: #fff;
+}
+
+.quick-btn.primary:hover {
+  background: var(--primary-800);
+  border-color: var(--primary-800);
+}
+
+/* Card Row Styles (Overdue / Active Loan) */
+.card-row {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-row:hover {
+  box-shadow: var(--shadow-card);
+}
+
+.card-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--line);
+}
+
+.card-row.overdue {
+  background: var(--rose-50);
+  border-color: rgba(225, 29, 72, 0.2);
+}
+
+.card-row.overdue::before {
+  background: var(--rose-600);
+}
+
+.card-row.loan {
+  border-color: rgba(64, 145, 108, 0.2);
+}
+
+.card-row.loan::before {
+  background: var(--primary-600);
+}
+
+.card-row .info {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-row .title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-main);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-row .meta {
+  font-size: 13px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-row .meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge-pill {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-pill.danger {
+  background: var(--rose-600);
+  color: #fff;
+}
+
+.badge-pill.warning {
+  background: var(--amber-50);
+  border: 1px solid rgba(217, 119, 6, 0.3);
+  color: var(--amber-600);
+}
+
+.badge-pill.soft {
+  background: var(--primary-100);
+  color: var(--primary-800);
+}
+
+.action-pill-btn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--primary-700);
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.action-pill-btn:hover {
+  background: var(--primary-700);
+  border-color: var(--primary-700);
+  color: #fff;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13.5px;
+  padding: 36px 16px;
+  background: var(--surface);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.empty-state svg {
+  color: var(--text-subtle);
+  margin-bottom: 4px;
+}
+
+/* Search Bar & Category Chips */
+.search-container {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.search-icon-svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.searchbar {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  font-size: 14.5px;
+  background: var(--surface);
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.searchbar:focus {
+  outline: none;
+  border-color: var(--primary-600);
+  box-shadow: 0 0 0 3px rgba(64, 145, 108, 0.15);
+}
+
+.category-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scrollbar-width: none;
+}
+
+.category-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  padding: 6px 13px;
+  border-radius: var(--radius-full);
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.chip:hover {
+  border-color: var(--primary-500);
+  color: var(--primary-700);
+}
+
+.chip.active {
+  background: var(--primary-700);
+  border-color: var(--primary-700);
+  color: #fff;
+}
+
+/* Item Row Cards */
+.item-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.18s ease;
+}
+
+.item-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(64, 145, 108, 0.4);
+  box-shadow: var(--shadow-card);
+}
+
+.item-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  background: var(--primary-100);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--primary-800);
+  overflow: hidden;
+  font-weight: 700;
+  border: 1px solid rgba(64, 145, 108, 0.15);
+}
+
+.item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.item-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-category-tag {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+.item-meta {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.item-stock-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.item-qty-badge {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--primary-700);
+  letter-spacing: -0.01em;
+}
+
+.item-qty-badge.low {
+  color: var(--rose-600);
+}
+
+.stock-meter-bg {
+  width: 50px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--line);
+  overflow: hidden;
+}
+
+.stock-meter-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--primary-500);
+}
+
+.stock-meter-fill.low {
+  background: var(--rose-600);
+}
+
+/* Floating Action Button (FAB) */
+.fab {
+  position: fixed;
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  right: calc(50% - 300px);
+  z-index: 25;
+  background: var(--primary-700);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 13px 20px;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-float);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.2s ease;
+}
+
+@media (max-width: 640px) {
+  .fab {
+    right: 20px;
+  }
+}
+
+.fab:hover {
+  background: var(--primary-800);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px -4px rgba(27, 67, 50, 0.3);
+}
+
+/* Loans Segment Control */
+.segment-tabs {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 4px;
+  margin-bottom: 16px;
+  gap: 4px;
+}
+
+.segment-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.segment-btn.active {
+  background: var(--primary-100);
+  color: var(--primary-800);
+  font-weight: 700;
+}
+
+/* Locations Tab Form & Cards */
+.add-loc-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.add-loc-card .card-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.add-loc-form {
+  display: flex;
+  gap: 8px;
+}
+
+.add-loc-form input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  background: var(--surface-alt);
+  transition: all 0.2s;
+}
+
+.add-loc-form input:focus {
+  outline: none;
+  border-color: var(--primary-600);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(64, 145, 108, 0.15);
+}
+
+.loc-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 15px 18px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.15s ease;
+}
+
+.loc-card:hover {
+  box-shadow: var(--shadow-card);
+}
+
+.loc-card .loc-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.loc-icon-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: var(--primary-50);
+  color: var(--primary-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(64, 145, 108, 0.15);
+}
+
+.loc-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-main);
+}
+
+.loc-meta {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.loc-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.icon-action-btn {
+  border: none;
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  transition: all 0.15s;
+}
+
+.icon-action-btn:hover {
+  background: var(--line-subtle);
+  color: var(--text-main);
+}
+
+.icon-action-btn.danger:hover {
+  background: var(--rose-50);
+  border-color: rgba(225, 29, 72, 0.3);
+  color: var(--rose-600);
+}
+
+/* Modal Dialogs */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@media (min-width: 641px) {
+  .modal-overlay {
+    align-items: center;
+    padding: 24px;
+  }
+}
+
+.modal {
+  background: var(--surface);
+  width: 100%;
+  max-width: 520px;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: 24px 22px calc(24px + env(safe-area-inset-bottom));
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-modal);
+  animation: slideUp 0.25s ease-out;
+  position: relative;
+}
+
+@media (min-width: 641px) {
+  .modal {
+    border-radius: var(--radius-xl);
+    padding: 26px 26px 24px;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.modal-close-btn {
+  border: none;
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.modal-close-btn:hover {
+  background: var(--line);
+  color: var(--text-main);
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.field input[type=text],
+.field input[type=number],
+.field input[type=date],
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  font-size: 14.5px;
+  background: var(--surface-alt);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--primary-600);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(64, 145, 108, 0.15);
+}
+
+.field select {
+  cursor: pointer;
+}
+
+.field .checkline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.field .checkline input[type=checkbox] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary-700);
+  cursor: pointer;
+}
+
+.photo-zone {
+  border: 2px dashed var(--line);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  text-align: center;
+  margin-bottom: 16px;
+  background: var(--surface-alt);
+  transition: all 0.2s ease;
+}
+
+.photo-zone:hover {
+  border-color: var(--primary-500);
+}
+
+.photo-zone img {
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.photo-zone .hint {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+/* Button UI Components */
+.btn {
+  background: var(--primary-700);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:hover {
+  background: var(--primary-800);
+}
+
+.btn.secondary {
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  color: var(--text-main);
+  box-shadow: none;
+}
+
+.btn.secondary:hover {
+  background: var(--line);
+}
+
+.btn.danger-soft {
+  background: var(--rose-50);
+  border: 1px solid rgba(225, 29, 72, 0.25);
+  color: var(--rose-600);
+}
+
+.btn.danger-soft:hover {
+  background: var(--rose-100);
+}
+
+.btn.block {
+  width: 100%;
+  padding: 13px;
+  font-size: 15px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Floating Toast */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(90px + env(safe-area-inset-bottom));
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  padding: 11px 20px;
+  border-radius: var(--radius-full);
+  font-size: 13.5px;
+  font-weight: 600;
+  z-index: 120;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-float);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.hidden-input {
+  display: none;
+}
 </style>
 </head>
 <body>
+
 <div id="app">
-  <div class="topbar">
-    <h1 id="pageTitle">명선교회 교회학교 물품 관리 시스템</h1>
-    <div class="sub" id="pageSub">보관 장소와 대여 현황을 한눈에 관리해요</div>
-    <div class="sub" id="syncStatus" style="margin-top:4px;font-size:11.5px;"></div>
-  </div>
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="topbar-header">
+      <div class="brand-wrapper">
+        <div class="brand-icon">
+          <!-- Cross / Leaf Emblem -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M7 7h10M4 14l8-4 8 4"/>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <h1>
+            명선교회 교회학교
+            <span class="brand-badge">물품관리</span>
+          </h1>
+          <div class="sub" id="pageSub">보관 장소와 대여 현황을 한눈에 관리해요</div>
+        </div>
+      </div>
+      <div class="sync-badge" id="syncBadge">
+        <span class="sync-dot"></span>
+        <span id="syncText">연결 확인 중</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Dynamic Content -->
   <main id="content"></main>
+
+  <!-- Bottom Navigation Tab Bar -->
   <nav class="tabbar" id="tabbar">
-    <button data-tab="home">현황<span class="dot"></span></button>
-    <button data-tab="items">물품<span class="dot"></span></button>
-    <button data-tab="loans">대여/사용<span class="dot"></span></button>
-    <button data-tab="locations">보관장소<span class="dot"></span></button>
+    <button class="tab-btn active" data-tab="home">
+      <div class="tab-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <span class="tab-label">현황</span>
+    </button>
+
+    <button class="tab-btn" data-tab="items">
+      <div class="tab-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+      </div>
+      <span class="tab-label">물품</span>
+    </button>
+
+    <button class="tab-btn" data-tab="loans" id="loansTabBtn">
+      <div class="tab-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+          <line x1="16" x2="16" y1="2" y2="6"/>
+          <line x1="8" x2="8" y1="2" y2="6"/>
+          <line x1="3" x2="21" y1="10" y2="10"/>
+          <path d="m9 16 2 2 4-4"/>
+        </svg>
+      </div>
+      <span class="tab-label">대여/사용</span>
+    </button>
+
+    <button class="tab-btn" data-tab="locations">
+      <div class="tab-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+      </div>
+      <span class="tab-label">보관장소</span>
+    </button>
   </nav>
 </div>
+
+<!-- Modal & Toast Roots -->
 <div id="modalRoot"></div>
 <div class="toast" id="toast"></div>
 
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+
 <script>
 // ==========================================================================
-// ⚠️ 관리자 설정: Firebase 프로젝트를 만든 뒤 아래 값을 붙여넣으세요.
-//    (파일 하단 안내를 참고해 무료로 5분이면 만들 수 있어요)
-//    이 값들은 Firebase 설계상 공개되어도 안전한 "공개 설정값"이에요.
-//    실제 데이터 접근 제한은 Firebase 콘솔의 "규칙(Rules)"에서 관리해요.
+// ⚠️ 관리자 설정: Firebase 프로젝트 설정값
+// ==========================================================================
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCqY0eACy_09m4DDAkNlEb0FJ5nPa2NCG4",
   authDomain: "ms-inventory-13b12.firebaseapp.com",
@@ -220,10 +1304,12 @@ const FIREBASE_CONFIG = {
 };
 // ==========================================================================
 
-// ---------- state ----------
+// ---------- State Management ----------
 let state = { locations: [], items: [], transactions: [] };
 let activeTab = 'home';
 let itemsSearchQuery = '';
+let itemsSelectedCategory = '';
+let loansSegment = 'active'; // 'active' | 'overdue' | 'consumed'
 let db = null;
 let firebaseReady = false;
 
@@ -231,6 +1317,7 @@ const content = document.getElementById('content');
 const modalRoot = document.getElementById('modalRoot');
 const pageSub = document.getElementById('pageSub');
 
+// ---------- Utility Functions ----------
 function uid(){
   if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
   return 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
@@ -247,16 +1334,22 @@ function escapeHtml(s){
 }
 function showToast(msg){
   const t = document.getElementById('toast');
-  t.textContent = msg;
+  t.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#52B788" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 6 9 17l-5-5"/>
+    </svg>
+    <span>${escapeHtml(msg)}</span>
+  `;
   t.classList.add('show');
   clearTimeout(showToast._h);
-  showToast._h = setTimeout(()=> t.classList.remove('show'), 2000);
+  showToast._h = setTimeout(()=> t.classList.remove('show'), 2200);
 }
 
-// ---------- storage (Firebase Firestore로 모든 사용자가 데이터를 함께 봐요) ----------
+// ---------- Storage & Cloud Sync (Firebase Firestore) ----------
 function isFirebaseConfigured(){
   return FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf('여기에') !== 0;
 }
+
 function initFirebase(){
   if(!isFirebaseConfigured()) return;
   try{
@@ -264,16 +1357,24 @@ function initFirebase(){
     db = firebase.firestore();
     firebaseReady = true;
   }catch(e){
-    console.error('firebase init error', e);
+    console.error('Firebase 초기화 오류:', e);
     firebaseReady = false;
   }
 }
+
 function updateSyncStatus(){
-  const el = document.getElementById('syncStatus');
-  if(!el) return;
-  if(firebaseReady) el.textContent = '서버와 함께 저장 중 (모두가 같은 데이터를 봐요)';
-  else el.textContent = '⚠️ 서버 연결이 설정되지 않았어요 (이 기기에만 저장돼요)';
+  const badge = document.getElementById('syncBadge');
+  const text = document.getElementById('syncText');
+  if(!badge || !text) return;
+  if(firebaseReady){
+    badge.className = 'sync-badge synced';
+    text.textContent = '클라우드 동기화 중';
+  } else {
+    badge.className = 'sync-badge warning';
+    text.textContent = '로컬 저장 모드';
+  }
 }
+
 function startSync(){
   updateSyncStatus();
   if(!firebaseReady){
@@ -289,6 +1390,7 @@ function startSync(){
     render();
     return;
   }
+
   db.collection('church-inventory').doc('main').onSnapshot((doc) => {
     if(doc.exists){
       const data = doc.data();
@@ -298,16 +1400,17 @@ function startSync(){
     }
     render();
   }, (err) => {
-    console.error('firestore sync error', err);
-    showToast('서버 연결에 문제가 있어요. 인터넷 상태를 확인해주세요.');
+    console.error('Firestore 실시간 동기화 오류:', err);
+    showToast('서버 연결을 확인해주세요. 로컬 데이터를 유지합니다.');
   });
 }
+
 async function saveState(){
   if(!firebaseReady){
     try{
       localStorage.setItem('church-inventory-data', JSON.stringify(state));
     }catch(e){
-      console.error('storage save error', e);
+      console.error('Local storage 저장 실패:', e);
       showToast('저장에 실패했어요.');
     }
     return;
@@ -315,19 +1418,21 @@ async function saveState(){
   try{
     await db.collection('church-inventory').doc('main').set(state);
   }catch(e){
-    console.error('firestore save error', e);
-    showToast('서버 저장에 실패했어요. 인터넷 상태를 확인해주세요.');
+    console.error('Firestore 저장 실패:', e);
+    showToast('서버 저장에 실패했어요. 네트워크를 확인해주세요.');
   }
 }
+
 async function persistAndRender(){
   await saveState();
   render();
 }
 
-// ---------- derived data ----------
+// ---------- Derived Data Helpers ----------
 function getLocation(id){ return state.locations.find(l => l.id === id); }
 function getItem(id){ return state.items.find(i => i.id === id); }
 function itemCountAtLocation(locId){ return state.items.filter(i => i.locationId === locId).length; }
+
 function activeLoans(){
   return state.transactions
     .filter(t => t.type === 'checkout' && !t.consumable && !t.returned)
@@ -339,7 +1444,6 @@ function overdueLoans(){
 }
 function upcomingLoans(){
   const today = todayStr();
-  const soon = daysBetween(today, todayStr()); // placeholder, real calc below
   return activeLoans().filter(t => {
     if(!t.dueDate || t.dueDate < today) return false;
     return daysBetween(today, t.dueDate) <= 3;
@@ -349,10 +1453,10 @@ function recentConsumables(){
   return state.transactions
     .filter(t => t.type === 'checkout' && t.consumable)
     .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''))
-    .slice(0, 8);
+    .slice(0, 15);
 }
 
-// ---------- image helpers ----------
+// ---------- Image Compression Helper ----------
 function fileToCompressedBase64(file, maxDim, quality){
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -375,37 +1479,142 @@ function fileToCompressedBase64(file, maxDim, quality){
   });
 }
 
-// ---------- rendering ----------
+// ---------- View Rendering ----------
 function render(){
-  document.querySelectorAll('#tabbar button').forEach(b => {
+  // Update Tab bar UI
+  document.querySelectorAll('#tabbar .tab-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.tab === activeTab);
   });
-  const overdueCount = overdueLoans().length;
-  const loansBtn = document.querySelector('#tabbar button[data-tab="loans"]');
-  loansBtn.innerHTML = '대여/사용<span class="dot"></span>' + (overdueCount > 0 ? '<span class="badge"></span>' : '');
 
-  if(activeTab === 'home'){ pageSub.textContent = '보관 장소와 대여 현황을 한눈에 관리해요'; renderHome(); }
-  else if(activeTab === 'items'){ pageSub.textContent = '물품을 등록하고 위치를 확인해요'; renderItems(); }
-  else if(activeTab === 'loans'){ pageSub.textContent = '대여 중인 물품과 반납 예정일을 관리해요'; renderLoans(); }
-  else if(activeTab === 'locations'){ pageSub.textContent = '물품을 보관하는 장소를 관리해요'; renderLocations(); }
+  // Overdue badge on loans tab
+  const overdueCount = overdueLoans().length;
+  const loansBtn = document.getElementById('loansTabBtn');
+  const existingBadge = loansBtn.querySelector('.badge-count');
+  if(existingBadge) existingBadge.remove();
+  if(overdueCount > 0){
+    loansBtn.insertAdjacentHTML('beforeend', `<span class="badge-count">${overdueCount}</span>`);
+  }
+
+  if(activeTab === 'home'){
+    pageSub.textContent = '보관 장소와 대여 현황을 한눈에 관리해요';
+    renderHome();
+  } else if(activeTab === 'items'){
+    pageSub.textContent = '물품을 등록하고 위치와 재고를 확인해요';
+    renderItems();
+  } else if(activeTab === 'loans'){
+    pageSub.textContent = '대여 물품의 반납 일정과 소모 내역을 관리해요';
+    renderLoans();
+  } else if(activeTab === 'locations'){
+    pageSub.textContent = '교회학교 물품 보관 장소를 관리해요';
+    renderLocations();
+  }
 }
 
+// ---------- 1. Home (Dashboard) ----------
 function renderHome(){
   const overdue = overdueLoans();
   const upcoming = upcomingLoans();
   const loans = activeLoans();
 
   let html = '';
-  html += '<div class="stat-grid">';
-  html += statCard(state.items.length, '전체 물품');
-  html += statCard(state.locations.length, '보관 장소');
-  html += statCard(loans.length, '대여 중');
-  html += statCard(overdue.length, '반납 연체');
-  html += '</div>';
 
-  html += '<div class="section-label">반납 예정일이 지난 물품</div>';
+  // 4 Stat Cards
+  html += `
+  <div class="stat-grid">
+    <div class="stat-card" onclick="activeTab='items';render();" style="cursor:pointer;">
+      <div class="stat-icon-wrapper green">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-num">${state.items.length}</div>
+        <div class="stat-label">전체 물품</div>
+      </div>
+    </div>
+
+    <div class="stat-card" onclick="activeTab='locations';render();" style="cursor:pointer;">
+      <div class="stat-icon-wrapper blue">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-num">${state.locations.length}</div>
+        <div class="stat-label">보관 장소</div>
+      </div>
+    </div>
+
+    <div class="stat-card" onclick="activeTab='loans';loansSegment='active';render();" style="cursor:pointer;">
+      <div class="stat-icon-wrapper amber">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+          <line x1="16" x2="16" y1="2" y2="6"/>
+          <line x1="8" x2="8" y1="2" y2="6"/>
+          <line x1="3" x2="21" y1="10" y2="10"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-num">${loans.length}</div>
+        <div class="stat-label">현재 대여 중</div>
+      </div>
+    </div>
+
+    <div class="stat-card" onclick="activeTab='loans';loansSegment='overdue';render();" style="cursor:pointer;">
+      <div class="stat-icon-wrapper rose">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-num">${overdue.length}</div>
+        <div class="stat-label">반납 연체</div>
+      </div>
+    </div>
+  </div>
+  `;
+
+  // Quick Action Buttons
+  html += `
+  <div class="quick-action-row">
+    <button class="quick-btn primary" onclick="openAddItemModal()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+      물품 등록
+    </button>
+    <button class="quick-btn" onclick="openCheckoutModal(null)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+      대여/사용 등록
+    </button>
+  </div>
+  `;
+
+  // Overdue Section
+  html += `
+  <div class="section-header">
+    <div class="section-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E11D48" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      반납 예정일 지난 물품
+    </div>
+    ${overdue.length > 0 ? `<span class="section-badge rose">${overdue.length}건 연체</span>` : ''}
+  </div>
+  `;
+
   if(overdue.length === 0){
-    html += '<div class="empty-state">연체된 물품이 없어요.</div>';
+    html += `
+    <div class="empty-state">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <div>연체된 물품이 없어요. 모든 반납이 정상 진행 중입니다!</div>
+    </div>`;
   } else {
     overdue.forEach(t => {
       const item = getItem(t.itemId);
@@ -415,236 +1624,503 @@ function renderHome(){
         <div class="info">
           <div class="title">${escapeHtml(item ? item.name : '삭제된 물품')}</div>
           <div class="meta">
-            <span>${escapeHtml(t.dept || '부서 미입력')} · ${escapeHtml(t.person || '담당자 미입력')} · ${t.qty}개</span>
-            <span>반납 예정일: ${fmtDate(t.dueDate)}</span>
+            <div class="meta-item">
+              <span>${escapeHtml(t.dept || '부서 미지정')}</span>
+              <span>·</span>
+              <span>${escapeHtml(t.person || '담당자 미입력')}</span>
+              <span>·</span>
+              <strong>${t.qty}개</strong>
+            </div>
+            <div class="meta-item" style="color:var(--rose-600); font-weight:600;">
+              반납 예정일: ${fmtDate(t.dueDate)} (${dOver}일 초과)
+            </div>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-          <span class="badge-pill">${dOver}일 지남</span>
-          <button class="icon-btn" style="color:var(--accent-deep);font-weight:700;" onclick="returnLoan('${t.id}')">반납 처리</button>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+          <span class="badge-pill danger">${dOver}일 지남</span>
+          <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 완료</button>
         </div>
       </div>`;
     });
   }
 
+  // Upcoming Loans Section (Within 3 days)
   if(upcoming.length > 0){
-    html += '<div class="section-label">곧 반납 예정 (3일 이내)</div>';
+    html += `
+    <div class="section-header" style="margin-top:28px;">
+      <div class="section-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        곧 반납 예정 (3일 이내)
+      </div>
+      <span class="section-badge amber">${upcoming.length}건</span>
+    </div>
+    `;
+
     upcoming.forEach(t => {
       const item = getItem(t.itemId);
+      const daysLeft = daysBetween(todayStr(), t.dueDate);
+      const daysText = daysLeft === 0 ? '오늘 반납' : `${daysLeft}일 후 반납`;
       html += `
       <div class="card-row loan">
         <div class="info">
           <div class="title">${escapeHtml(item ? item.name : '삭제된 물품')}</div>
           <div class="meta">
-            <span>${escapeHtml(t.dept || '')} · ${escapeHtml(t.person || '')} · ${t.qty}개</span>
-            <span>반납 예정일: ${fmtDate(t.dueDate)}</span>
+            <div class="meta-item">
+              <span>${escapeHtml(t.dept || '부서')}</span>
+              <span>·</span>
+              <span>${escapeHtml(t.person || '담당자')}</span>
+              <span>·</span>
+              <strong>${t.qty}개</strong>
+            </div>
+            <div class="meta-item">
+              반납 예정일: ${fmtDate(t.dueDate)} (${daysText})
+            </div>
           </div>
         </div>
-        <button class="icon-btn" style="color:var(--accent-deep);font-weight:700;" onclick="returnLoan('${t.id}')">반납 처리</button>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+          <span class="badge-pill warning">${daysText}</span>
+          <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 완료</button>
+        </div>
       </div>`;
     });
   }
 
   content.innerHTML = html;
 }
-function statCard(num, label){
-  return `<div class="stat-card"><div class="num">${num}</div><div class="label">${label}</div></div>`;
-}
 
+// ---------- 2. Items View ----------
 function renderItems(){
   let html = '';
-  html += `<input class="searchbar" placeholder="물품 이름으로 찾기" value="${escapeHtml(itemsSearchQuery)}" oninput="onItemsSearch(this.value)">`;
 
+  // Search Bar
+  html += `
+  <div class="search-container">
+    <svg class="search-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+    </svg>
+    <input type="text" class="searchbar" placeholder="물품 이름 또는 카테고리로 검색" value="${escapeHtml(itemsSearchQuery)}" oninput="onItemsSearch(this.value)">
+  </div>
+  `;
+
+  // Dynamically extract categories for chips
+  const categoriesSet = new Set();
+  state.items.forEach(i => {
+    if(i.category && i.category.trim()) categoriesSet.add(i.category.trim());
+  });
+  const categories = Array.from(categoriesSet);
+
+  if(categories.length > 0){
+    html += '<div class="category-chips">';
+    html += `<button class="chip ${!itemsSelectedCategory ? 'active' : ''}" onclick="selectCategory('')">전체</button>`;
+    categories.forEach(cat => {
+      html += `<button class="chip ${itemsSelectedCategory === cat ? 'active' : ''}" onclick="selectCategory('${escapeHtml(cat)}')">${escapeHtml(cat)}</button>`;
+    });
+    html += '</div>';
+  }
+
+  // Filter list
   const q = itemsSearchQuery.trim().toLowerCase();
   let list = state.items;
+
   if(q){
     list = list.filter(i => (i.name||'').toLowerCase().includes(q) || (i.category||'').toLowerCase().includes(q));
   }
+  if(itemsSelectedCategory){
+    list = list.filter(i => (i.category||'').trim() === itemsSelectedCategory);
+  }
+
   list = list.slice().sort((a,b) => (a.name||'').localeCompare(b.name||''));
 
+  // Header count
+  html += `
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:12.5px; color:var(--text-muted); font-weight:600;">
+    <span>총 ${list.length}개 물품</span>
+    <span>대여 가능 / 총 수량</span>
+  </div>
+  `;
+
   if(state.items.length === 0){
-    html += '<div class="empty-state">등록된 물품이 없어요.<br>아래 버튼으로 첫 물품을 등록해보세요.</div>';
+    html += `
+    <div class="empty-state">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+      </svg>
+      <div style="font-weight:600; color:var(--text-main);">등록된 물품이 없습니다.</div>
+      <div>아래의 물품 등록 버튼을 눌러 첫 물품을 추가해보세요.</div>
+    </div>`;
   } else if(list.length === 0){
-    html += '<div class="empty-state">검색 결과가 없어요.</div>';
+    html += `
+    <div class="empty-state">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+      </svg>
+      <div>검색 조건에 맞는 물품이 없습니다.</div>
+    </div>`;
   } else {
     list.forEach(item => {
       const loc = getLocation(item.locationId);
       const outNow = state.transactions.filter(t => t.itemId === item.id && t.type === 'checkout' && !t.consumable && !t.returned);
-      let statusLine = loc ? ('📍 ' + escapeHtml(loc.name)) : '보관 장소 미지정';
+      
+      let statusLine = loc ? escapeHtml(loc.name) : '장소 미지정';
       if(outNow.length > 0){
         const names = outNow.map(t => (t.dept || t.person || '대여중')).join(', ');
         statusLine += ' · 대여중: ' + escapeHtml(names);
       }
+
       const low = item.availableQty <= 0;
+      const ratio = item.totalQty > 0 ? Math.min(100, Math.round((item.availableQty / item.totalQty) * 100)) : 0;
+
       html += `
-      <div class="item-row" onclick="openItemDetail('${item.id}')">
-        <div class="thumb">${item.photo ? `<img src="${item.photo}">` : escapeHtml((item.name||'?').slice(0,2))}</div>
-        <div class="info">
-          <div class="title">${escapeHtml(item.name)}</div>
-          <div class="meta">${statusLine}</div>
+      <div class="item-card" onclick="openItemDetail('${item.id}')">
+        <div class="item-thumb">
+          ${item.photo ? `<img src="${item.photo}">` : escapeHtml((item.name||'?').slice(0,2))}
         </div>
-        <div class="qty ${low ? 'low' : ''}">${item.availableQty}/${item.totalQty}</div>
+        <div class="item-info">
+          <div class="item-title-row">
+            <div class="item-title">${escapeHtml(item.name)}</div>
+            ${item.category ? `<span class="item-category-tag">${escapeHtml(item.category)}</span>` : ''}
+          </div>
+          <div class="item-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>${statusLine}</span>
+          </div>
+        </div>
+        <div class="item-stock-box">
+          <div class="item-qty-badge ${low ? 'low' : ''}">
+            ${item.availableQty} <span style="font-size:11.5px; color:var(--text-subtle); font-weight:500;">/ ${item.totalQty}</span>
+          </div>
+          <div class="stock-meter-bg">
+            <div class="stock-meter-fill ${low ? 'low' : ''}" style="width: ${ratio}%;"></div>
+          </div>
+        </div>
       </div>`;
     });
   }
 
-  html += `<button class="fab" onclick="openAddItemModal()">+ 물품 등록</button>`;
+  // Floating Action Button
+  html += `
+  <button class="fab" onclick="openAddItemModal()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+    <span>물품 등록</span>
+  </button>
+  `;
+
   content.innerHTML = html;
 }
-function onItemsSearch(v){ itemsSearchQuery = v; renderItems(); }
 
+function onItemsSearch(v){
+  itemsSearchQuery = v;
+  renderItems();
+}
+
+function selectCategory(cat){
+  itemsSelectedCategory = cat;
+  renderItems();
+}
+
+// ---------- 3. Loans & Usage View ----------
 function renderLoans(){
   let html = '';
   const loans = activeLoans();
-  html += '<div class="section-label">현재 대여 중</div>';
-  if(loans.length === 0){
-    html += '<div class="empty-state">현재 대여 중인 물품이 없어요.</div>';
-  } else {
-    const today = todayStr();
-    loans.forEach(t => {
-      const item = getItem(t.itemId);
-      const isOver = t.dueDate && t.dueDate < today;
-      html += `
-      <div class="card-row ${isOver ? 'overdue' : 'loan'}">
-        <div class="info">
-          <div class="title">${escapeHtml(item ? item.name : '삭제된 물품')}</div>
-          <div class="meta">
-            <span>${escapeHtml(t.dept || '부서 미입력')} · ${escapeHtml(t.person || '담당자 미입력')} · ${t.qty}개</span>
-            <span>반납 예정일: ${fmtDate(t.dueDate)}${isOver ? ' · ' + daysBetween(t.dueDate, today) + '일 지남' : ''}</span>
-          </div>
-        </div>
-        <button class="icon-btn" style="color:var(--accent-deep);font-weight:700;" onclick="returnLoan('${t.id}')">반납 처리</button>
-      </div>`;
-    });
-  }
-
+  const overdue = overdueLoans();
   const consumed = recentConsumables();
-  html += '<div class="section-label">최근 소모 내역</div>';
-  if(consumed.length === 0){
-    html += '<div class="empty-state">소모성으로 사용 처리된 물품이 없어요.</div>';
-  } else {
-    consumed.forEach(t => {
-      const item = getItem(t.itemId);
+
+  // Segment Controller
+  html += `
+  <div class="segment-tabs">
+    <button class="segment-btn ${loansSegment === 'active' ? 'active' : ''}" onclick="setLoansSegment('active')">
+      대여 중 (${loans.length})
+    </button>
+    <button class="segment-btn ${loansSegment === 'overdue' ? 'active' : ''}" onclick="setLoansSegment('overdue')">
+      연체 (${overdue.length})
+    </button>
+    <button class="segment-btn ${loansSegment === 'consumed' ? 'active' : ''}" onclick="setLoansSegment('consumed')">
+      소모 내역 (${consumed.length})
+    </button>
+  </div>
+  `;
+
+  if(loansSegment === 'active'){
+    if(loans.length === 0){
       html += `
-      <div class="card-row">
-        <div class="info">
-          <div class="title">${escapeHtml(item ? item.name : '삭제된 물품')}</div>
-          <div class="meta"><span>${escapeHtml(t.dept || '')} ${t.person ? '· ' + escapeHtml(t.person) : ''} · ${t.qty}개 사용</span></div>
-        </div>
-        <span class="badge-pill soft">소모</span>
+      <div class="empty-state">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
+        </svg>
+        <div>현재 대여 중인 물품이 없습니다.</div>
       </div>`;
-    });
+    } else {
+      const today = todayStr();
+      loans.forEach(t => {
+        const item = getItem(t.itemId);
+        const isOver = t.dueDate && t.dueDate < today;
+        const dDiff = isOver ? daysBetween(t.dueDate, today) : daysBetween(today, t.dueDate);
+
+        html += `
+        <div class="card-row ${isOver ? 'overdue' : 'loan'}">
+          <div class="info">
+            <div class="title">${escapeHtml(item ? item.name : '삭제된 물품')}</div>
+            <div class="meta">
+              <div class="meta-item">
+                <span>${escapeHtml(t.dept || '부서 미입력')}</span>
+                <span>·</span>
+                <span>${escapeHtml(t.person || '담당자 미입력')}</span>
+                <span>·</span>
+                <strong>${t.qty}개 대여</strong>
+              </div>
+              <div class="meta-item" style="${isOver ? 'color:var(--rose-600); font-weight:600;' : ''}">
+                반납 예정일: ${fmtDate(t.dueDate)} (${isOver ? dDiff + '일 지남' : dDiff + '일 남음'})
+              </div>
+            </div>
+          </div>
+          <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 완료</button>
+        </div>`;
+      });
+    }
+  } else if(loansSegment === 'overdue'){
+    if(overdue.length === 0){
+      html += `
+      <div class="empty-state">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <div>연체된 물품이 없습니다.</div>
+      </div>`;
+    } else {
+      const today = todayStr();
+      overdue.forEach(t => {
+        const item = getItem(t.itemId);
+        const dOver = daysBetween(t.dueDate, today);
+        html += `
+        <div class="card-row overdue">
+          <div class="info">
+            <div class="title">${escapeHtml(item ? item.name : '삭제된 물품')}</div>
+            <div class="meta">
+              <div class="meta-item">
+                <span>${escapeHtml(t.dept || '부서')}</span>
+                <span>·</span>
+                <span>${escapeHtml(t.person || '담당자')}</span>
+                <span>·</span>
+                <strong>${t.qty}개</strong>
+              </div>
+              <div class="meta-item" style="color:var(--rose-600); font-weight:700;">
+                반납 예정일: ${fmtDate(t.dueDate)} (${dOver}일 경과)
+              </div>
+            </div>
+          </div>
+          <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 처리</button>
+        </div>`;
+      });
+    }
+  } else if(loansSegment === 'consumed'){
+    if(consumed.length === 0){
+      html += `
+      <div class="empty-state">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        </svg>
+        <div>소모성으로 사용 처리된 내역이 없습니다.</div>
+      </div>`;
+    } else {
+      consumed.forEach(t => {
+        const item = getItem(t.itemId);
+        html += `
+        <div class="card-row">
+          <div class="info">
+            <div class="title">${escapeHtml(item ? item.name : '삭제된 물품')}</div>
+            <div class="meta">
+              <div class="meta-item">
+                <span>${escapeHtml(t.dept || '')} ${t.person ? '· ' + escapeHtml(t.person) : ''}</span>
+                <span>·</span>
+                <strong>${t.qty}개 소모</strong>
+              </div>
+              <div class="meta-item" style="font-size:12px; color:var(--text-subtle);">
+                사용일: ${fmtDate(t.createdAt)}
+              </div>
+            </div>
+          </div>
+          <span class="badge-pill soft">소모 완료</span>
+        </div>`;
+      });
+    }
   }
 
-  html += `<button class="fab" onclick="openCheckoutModal(null)">+ 대여/사용 등록</button>`;
+  // Floating Action Button for checkout
+  html += `
+  <button class="fab" onclick="openCheckoutModal(null)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+    <span>대여/사용 등록</span>
+  </button>
+  `;
+
   content.innerHTML = html;
 }
 
+function setLoansSegment(seg){
+  loansSegment = seg;
+  renderLoans();
+}
+
+// ---------- 4. Locations View ----------
 function renderLocations(){
   let html = '';
-  html += `
-  <div class="add-loc-form">
-    <input type="text" id="newLocName" placeholder="새 보관 장소 이름 (예: 2층 창고)">
-    <button class="btn" onclick="addLocation()">추가</button>
-  </div>`;
 
+  // Add Location Card Form
+  html += `
+  <div class="add-loc-card">
+    <div class="card-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+      </svg>
+      새 보관 장소 추가
+    </div>
+    <div class="add-loc-form">
+      <input type="text" id="newLocName" placeholder="예: 2층 유치부실, 3층 음향실">
+      <button class="btn" onclick="addLocation()">추가</button>
+    </div>
+  </div>
+  `;
+
+  // Locations List
   if(state.locations.length === 0){
-    html += '<div class="empty-state">등록된 보관 장소가 없어요.<br>위에서 첫 장소를 추가해보세요.</div>';
+    html += `
+    <div class="empty-state">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+      </svg>
+      <div>등록된 보관 장소가 없습니다.<br>위 폼에서 첫 보관 장소를 등록해보세요.</div>
+    </div>`;
   } else {
+    html += `
+    <div style="font-size:13px; font-weight:700; color:var(--text-muted); margin-bottom:10px;">
+      등록된 보관 장소 (${state.locations.length}곳)
+    </div>
+    `;
+
     state.locations.forEach(loc => {
       const count = itemCountAtLocation(loc.id);
       html += `
-      <div class="loc-row">
-        <div>
-          <div class="title">${escapeHtml(loc.name)}</div>
-          <div class="meta">물품 ${count}개 보관 중</div>
+      <div class="loc-card">
+        <div class="loc-left">
+          <div class="loc-icon-badge">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <div>
+            <div class="loc-title">${escapeHtml(loc.name)}</div>
+            <div class="loc-meta">보관 물품: <strong>${count}종</strong></div>
+          </div>
         </div>
-        <div>
-          <button class="icon-btn" onclick="renameLocation('${loc.id}')">이름변경</button>
-          <button class="icon-btn danger" onclick="deleteLocation('${loc.id}')">삭제</button>
+        <div class="loc-actions">
+          <button class="icon-action-btn" onclick="renameLocation('${loc.id}')">수정</button>
+          <button class="icon-action-btn danger" onclick="deleteLocation('${loc.id}')">삭제</button>
         </div>
       </div>`;
     });
   }
+
   content.innerHTML = html;
 }
 
-// ---------- modal helpers ----------
-function openModal(html){
-  modalRoot.innerHTML = `<div class="modal-overlay" id="overlay"><div class="modal">${html}</div></div>`;
+// ---------- Modal System ----------
+function openModal(title, bodyHtml){
+  modalRoot.innerHTML = `
+    <div class="modal-overlay" id="overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>${escapeHtml(title)}</h2>
+          <button class="modal-close-btn" onclick="closeModal()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        ${bodyHtml}
+      </div>
+    </div>
+  `;
   document.getElementById('overlay').addEventListener('click', (e) => {
     if(e.target.id === 'overlay') closeModal();
   });
 }
 function closeModal(){ modalRoot.innerHTML = ''; }
 
-// ---------- locations ----------
+// ---------- Location Actions ----------
 async function addLocation(){
   const input = document.getElementById('newLocName');
   const name = input.value.trim();
   if(!name){ showToast('장소 이름을 입력해주세요.'); return; }
   state.locations.push({ id: uid(), name });
   await persistAndRender();
-  showToast('보관 장소를 추가했어요.');
+  showToast('보관 장소를 추가했습니다.');
 }
+
 async function renameLocation(id){
   const loc = getLocation(id);
   if(!loc) return;
-  const name = prompt('새 이름을 입력하세요.', loc.name);
+  const name = prompt('새로운 보관 장소 이름을 입력하세요.', loc.name);
   if(!name || !name.trim()) return;
   loc.name = name.trim();
   await persistAndRender();
+  showToast('장소 이름을 변경했습니다.');
 }
+
 async function deleteLocation(id){
   const count = itemCountAtLocation(id);
   if(count > 0){
-    alert('이 장소에 보관 중인 물품이 있어 삭제할 수 없어요. 먼저 물품의 보관 장소를 변경해주세요.');
+    alert('이 장소에 보관 중인 물품이 있어 삭제할 수 없습니다. 먼저 물품의 보관 장소를 이동해주세요.');
     return;
   }
-  if(!confirm('이 보관 장소를 삭제할까요?')) return;
+  if(!confirm('이 보관 장소를 삭제하시겠습니까?')) return;
   state.locations = state.locations.filter(l => l.id !== id);
   await persistAndRender();
+  showToast('보관 장소를 삭제했습니다.');
 }
 
-// ---------- items: add ----------
+// ---------- Items: Add ----------
 let addItemPhotoDataUrl = null;
 
 function openAddItemModal(){
   addItemPhotoDataUrl = null;
   if(state.locations.length === 0){
-    alert('먼저 보관 장소를 하나 이상 추가해주세요.');
+    alert('먼저 보관 장소를 하나 이상 등록해주세요.');
     activeTab = 'locations';
     render();
     return;
   }
   const locOptions = state.locations.map(l => `<option value="${l.id}">${escapeHtml(l.name)}</option>`).join('');
-  openModal(`
-    <h2>물품 등록</h2>
+  
+  openModal('새 물품 등록', `
     <div class="photo-zone" id="photoZone">
-      <div class="hint">물품 사진을 등록해두면 목록에서 알아보기 쉬워요 (선택)</div>
-      <div class="photo-buttons">
-        <label class="btn secondary">사진 촬영/선택<input type="file" accept="image/*" capture="environment" class="hidden-input" onchange="onAddItemPhoto(event)"></label>
+      <div class="hint">물품 사진을 등록해두면 목록에서 빠르게 구분할 수 있어요 (선택)</div>
+      <div style="display:flex; justify-content:center; gap:8px;">
+        <label class="btn secondary" style="cursor:pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+          사진 촬영 / 갤러리 선택
+          <input type="file" accept="image/*" capture="environment" class="hidden-input" onchange="onAddItemPhoto(event)">
+        </label>
       </div>
     </div>
     <div class="field">
-      <label>물품 이름</label>
-      <input type="text" id="fName" placeholder="예: 색종이">
+      <label>물품 이름 *</label>
+      <input type="text" id="fName" placeholder="예: 유아용 색연필 세트">
     </div>
     <div class="field">
       <label>카테고리 (선택)</label>
-      <input type="text" id="fCategory" placeholder="예: 미술용품">
+      <input type="text" id="fCategory" placeholder="예: 미술용품, 악기, 교재, 행사용품">
     </div>
     <div class="field">
-      <label>보관 장소</label>
+      <label>보관 장소 *</label>
       <select id="fLocation">${locOptions}</select>
     </div>
     <div class="field">
-      <label>총 개수</label>
+      <label>보유 수량 *</label>
       <input type="number" id="fQty" min="1" value="1">
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="closeModal()">취소</button>
-      <button class="btn" onclick="saveNewItem()">등록</button>
+      <button class="btn secondary" style="flex:1;" onclick="closeModal()">취소</button>
+      <button class="btn" style="flex:1.5;" onclick="saveNewItem()">등록 완료</button>
     </div>
   `);
 }
@@ -653,11 +2129,19 @@ async function onAddItemPhoto(evt){
   const file = evt.target.files[0];
   if(!file) return;
   try{
-    addItemPhotoDataUrl = await fileToCompressedBase64(file, 500, 0.7);
+    addItemPhotoDataUrl = await fileToCompressedBase64(file, 600, 0.75);
     const zone = document.getElementById('photoZone');
-    zone.querySelector('.hint').outerHTML = `<img src="${addItemPhotoDataUrl}">`;
+    zone.innerHTML = `
+      <img src="${addItemPhotoDataUrl}" alt="미리보기">
+      <div>
+        <label class="btn secondary" style="font-size:12px; padding:6px 12px; cursor:pointer;">
+          사진 변경
+          <input type="file" accept="image/*" capture="environment" class="hidden-input" onchange="onAddItemPhoto(event)">
+        </label>
+      </div>
+    `;
   }catch(e){
-    showToast('사진을 처리하지 못했어요.');
+    showToast('사진 처리에 실패했습니다.');
   }
 }
 
@@ -667,7 +2151,7 @@ async function saveNewItem(){
   const locationId = document.getElementById('fLocation').value;
   const qty = parseInt(document.getElementById('fQty').value, 10);
   if(!name){ showToast('물품 이름을 입력해주세요.'); return; }
-  if(!qty || qty < 1){ showToast('개수를 정확히 입력해주세요.'); return; }
+  if(!qty || qty < 1){ showToast('수량을 정확히 입력해주세요.'); return; }
   state.items.push({
     id: uid(), name, category, locationId,
     totalQty: qty, availableQty: qty,
@@ -676,72 +2160,111 @@ async function saveNewItem(){
   });
   closeModal();
   await persistAndRender();
-  showToast('물품을 등록했어요.');
+  showToast('물품을 등록했습니다.');
 }
 
-// ---------- item detail ----------
+// ---------- Items: Detail Modal ----------
 function openItemDetail(itemId){
   const item = getItem(itemId);
   if(!item) return;
   const loc = getLocation(item.locationId);
   const history = state.transactions.filter(t => t.itemId === itemId)
-    .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||'')).slice(0, 6);
+    .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||'')).slice(0, 8);
 
   let historyHtml = '';
   if(history.length === 0){
-    historyHtml = '<div class="empty-state" style="margin-top:6px;">이용 기록이 없어요.</div>';
+    historyHtml = '<div style="font-size:13px; color:var(--text-muted); padding:10px 0;">아직 대여나 입고 기록이 없습니다.</div>';
   } else {
     historyHtml = history.map(t => {
       let label;
-      if(t.type === 'stock_in') label = '입고 +' + t.qty + '개';
-      else if(t.consumable) label = (t.dept || t.person || '사용') + ' · ' + t.qty + '개 소모';
-      else label = (t.dept || t.person || '대여') + ' · ' + t.qty + '개' + (t.returned ? ' (반납완료)' : ' (대여중)');
-      return `<div class="meta" style="margin-bottom:4px;">${escapeHtml(label)}</div>`;
+      if(t.type === 'stock_in'){
+        label = `재고 입고 +${t.qty}개`;
+      } else if(t.consumable){
+        label = `${escapeHtml(t.dept || '')} ${t.person ? '· ' + escapeHtml(t.person) : ''} · ${t.qty}개 소모`;
+      } else {
+        label = `${escapeHtml(t.dept || '')} ${t.person ? '· ' + escapeHtml(t.person) : ''} · ${t.qty}개 ${t.returned ? '(반납 완료)' : '(대여 중)'}`;
+      }
+      return `
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--line); font-size:13px;">
+        <div>${label}</div>
+        <div style="font-size:11.5px; color:var(--text-subtle);">${fmtDate(t.createdAt)}</div>
+      </div>`;
     }).join('');
   }
 
-  openModal(`
-    <h2>${escapeHtml(item.name)}</h2>
-    <div class="field">
-      <div class="meta">보관 장소: ${loc ? escapeHtml(loc.name) : '미지정'}</div>
-      <div class="meta">카테고리: ${item.category ? escapeHtml(item.category) : '-'}</div>
-      <div class="meta">현재 수량: ${item.availableQty} / 총 ${item.totalQty}개</div>
+  const ratio = item.totalQty > 0 ? Math.min(100, Math.round((item.availableQty / item.totalQty) * 100)) : 0;
+
+  openModal(item.name, `
+    ${item.photo ? `<div style="text-align:center; margin-bottom:16px;"><img src="${item.photo}" style="max-height:180px; border-radius:12px; border:1px solid var(--line);"></div>` : ''}
+
+    <div style="background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-lg); padding:16px; margin-bottom:18px;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+        <span style="font-size:13px; color:var(--text-muted);">보관 장소</span>
+        <strong style="font-size:13.5px;">${loc ? escapeHtml(loc.name) : '미지정'}</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+        <span style="font-size:13px; color:var(--text-muted);">카테고리</span>
+        <strong style="font-size:13.5px;">${item.category ? escapeHtml(item.category) : '-'}</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:13px; color:var(--text-muted);">현재 가용 재고</span>
+        <span style="font-size:15px; font-weight:800; color:var(--primary-700);">${item.availableQty} / ${item.totalQty}개</span>
+      </div>
+      <div class="stock-meter-bg" style="width:100%; height:6px; margin-top:8px;">
+        <div class="stock-meter-fill ${item.availableQty <= 0 ? 'low' : ''}" style="width:${ratio}%;"></div>
+      </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn" style="flex:1" onclick="closeModal(); openCheckoutModal('${item.id}')">대여/사용</button>
-      <button class="btn secondary" style="flex:1" onclick="closeModal(); openStockInModal('${item.id}')">재고 입고</button>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+      <button class="btn" onclick="closeModal(); openCheckoutModal('${item.id}')">
+        대여 / 사용 등록
+      </button>
+      <button class="btn secondary" onclick="closeModal(); openStockInModal('${item.id}')">
+        재고 입고
+      </button>
     </div>
-    <div class="modal-actions">
-      <button class="btn secondary" style="flex:1" onclick="closeModal(); openEditItemModal('${item.id}')">수정</button>
-      <button class="btn secondary" style="flex:1;color:var(--warn);" onclick="deleteItem('${item.id}')">삭제</button>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+      <button class="btn secondary" onclick="closeModal(); openEditItemModal('${item.id}')">
+        정보 수정
+      </button>
+      <button class="btn danger-soft" onclick="deleteItem('${item.id}')">
+        물품 삭제
+      </button>
     </div>
-    <div class="section-label" style="margin-top:18px;">최근 이용 기록</div>
-    ${historyHtml}
+
+    <div style="font-size:13.5px; font-weight:700; color:var(--text-main); margin-bottom:8px;">
+      최근 이용 내역
+    </div>
+    <div style="background:var(--surface-alt); border-radius:var(--radius-md); padding:10px 14px; border:1px solid var(--line);">
+      ${historyHtml}
+    </div>
   `);
 }
 
 async function deleteItem(itemId){
   const hasActiveLoan = state.transactions.some(t => t.itemId === itemId && t.type === 'checkout' && !t.consumable && !t.returned);
   if(hasActiveLoan){
-    alert('현재 대여 중인 물품이라 삭제할 수 없어요. 먼저 반납 처리해주세요.');
+    alert('현재 대여 중인 물품이므로 삭제할 수 없습니다. 먼저 반납 처리해주세요.');
     return;
   }
-  if(!confirm('이 물품을 삭제할까요? 이용 기록도 함께 삭제돼요.')) return;
+  if(!confirm('이 물품을 삭제할까요? 관련 이용 기록도 함께 삭제됩니다.')) return;
   state.items = state.items.filter(i => i.id !== itemId);
   state.transactions = state.transactions.filter(t => t.itemId !== itemId);
   closeModal();
   await persistAndRender();
-  showToast('물품을 삭제했어요.');
+  showToast('물품을 삭제했습니다.');
 }
 
+// ---------- Items: Edit Modal ----------
 function openEditItemModal(itemId){
   const item = getItem(itemId);
   if(!item) return;
   const locOptions = state.locations.map(l =>
     `<option value="${l.id}" ${l.id === item.locationId ? 'selected' : ''}>${escapeHtml(l.name)}</option>`
   ).join('');
-  openModal(`
-    <h2>물품 수정</h2>
+
+  openModal('물품 정보 수정', `
     <div class="field">
       <label>물품 이름</label>
       <input type="text" id="eName" value="${escapeHtml(item.name)}">
@@ -755,12 +2278,12 @@ function openEditItemModal(itemId){
       <select id="eLocation">${locOptions}</select>
     </div>
     <div class="field">
-      <label>총 개수</label>
+      <label>총 수량</label>
       <input type="number" id="eQty" min="0" value="${item.totalQty}">
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="closeModal()">취소</button>
-      <button class="btn" onclick="saveEditItem('${item.id}')">저장</button>
+      <button class="btn secondary" style="flex:1;" onclick="closeModal()">취소</button>
+      <button class="btn" style="flex:1.5;" onclick="saveEditItem('${item.id}')">수정 완료</button>
     </div>
   `);
 }
@@ -781,29 +2304,29 @@ async function saveEditItem(itemId){
   item.availableQty = Math.max(0, item.availableQty + delta);
   closeModal();
   await persistAndRender();
-  showToast('물품 정보를 수정했어요.');
+  showToast('물품 정보를 수정했습니다.');
 }
 
-// ---------- stock in ----------
+// ---------- Stock In Modal ----------
 function openStockInModal(itemId){
   const item = getItem(itemId);
   if(!item) return;
-  openModal(`
-    <h2>${escapeHtml(item.name)} 재고 입고</h2>
+  openModal(`${item.name} 재고 추가`, `
     <div class="field">
-      <label>추가할 개수</label>
+      <label>추가 입고할 수량</label>
       <input type="number" id="stockQty" min="1" value="1">
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="closeModal()">취소</button>
-      <button class="btn" onclick="confirmStockIn('${item.id}')">입고 처리</button>
+      <button class="btn secondary" style="flex:1;" onclick="closeModal()">취소</button>
+      <button class="btn" style="flex:1.5;" onclick="confirmStockIn('${item.id}')">입고 처리</button>
     </div>
   `);
 }
+
 async function confirmStockIn(itemId){
   const item = getItem(itemId);
   const qty = parseInt(document.getElementById('stockQty').value, 10);
-  if(!qty || qty < 1){ showToast('개수를 정확히 입력해주세요.'); return; }
+  if(!qty || qty < 1){ showToast('수량을 정확히 입력해주세요.'); return; }
   item.totalQty += qty;
   item.availableQty += qty;
   state.transactions.push({
@@ -812,62 +2335,77 @@ async function confirmStockIn(itemId){
   });
   closeModal();
   await persistAndRender();
-  showToast('재고를 추가했어요.');
+  showToast('재고를 추가했습니다.');
 }
 
-// ---------- checkout (대여/사용) ----------
+// ---------- Checkout (대여/사용) Modal ----------
 function openCheckoutModal(itemId){
   let itemSelectHtml = '';
   if(itemId){
     const item = getItem(itemId);
-    itemSelectHtml = `<div class="field"><label>물품</label><input type="text" value="${escapeHtml(item.name)} (사용가능 ${item.availableQty}개)" disabled></div>
-      <input type="hidden" id="coItemId" value="${itemId}">`;
+    itemSelectHtml = `
+      <div class="field">
+        <label>대여 물품</label>
+        <input type="text" value="${escapeHtml(item.name)} (대여가능: ${item.availableQty}개)" disabled>
+        <input type="hidden" id="coItemId" value="${itemId}">
+      </div>`;
   } else {
     const options = state.items.filter(i => i.availableQty > 0)
-      .map(i => `<option value="${i.id}">${escapeHtml(i.name)} (사용가능 ${i.availableQty}개)</option>`).join('');
+      .map(i => `<option value="${i.id}">${escapeHtml(i.name)} (대여가능: ${i.availableQty}개)</option>`).join('');
     if(!options){
-      alert('대여하거나 사용할 수 있는 물품이 없어요. 먼저 물품을 등록해주세요.');
+      alert('현재 대여하거나 사용할 수 있는 물품이 없습니다.');
       return;
     }
-    itemSelectHtml = `<div class="field"><label>물품 선택</label><select id="coItemId">${options}</select></div>`;
+    itemSelectHtml = `
+      <div class="field">
+        <label>대여할 물품 선택</label>
+        <select id="coItemId">${options}</select>
+      </div>`;
   }
 
-  openModal(`
-    <h2>대여/사용 등록</h2>
+  // Default return due date: 7 days later
+  const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+
+  openModal('대여 / 사용 등록', `
     ${itemSelectHtml}
     <div class="field">
-      <label>수량</label>
+      <label>수량 *</label>
       <input type="number" id="coQty" min="1" value="1">
     </div>
     <div class="field">
-      <label>빌려가는 부서</label>
-      <input type="text" id="coDept" placeholder="예: 유치부">
+      <label>사용 부서 *</label>
+      <input type="text" id="coDept" placeholder="예: 유아부, 유치부, 초등부, 청소년부">
     </div>
     <div class="field">
-      <label>담당자</label>
+      <label>담당자 성명</label>
       <input type="text" id="coPerson" placeholder="예: 김철수 선생님">
     </div>
     <div class="field">
-      <label class="checkline"><input type="checkbox" id="coConsumable" onchange="toggleDueDate()"> 소모성 (이번에 사용하면 반납하지 않음)</label>
+      <label class="checkline">
+        <input type="checkbox" id="coConsumable" onchange="toggleDueDate()">
+        <span>소모성 물품 (행사 사용 등으로 반납하지 않음)</span>
+      </label>
     </div>
     <div class="field" id="dueDateField">
-      <label>반납 예정일</label>
-      <input type="date" id="coDueDate" value="${todayStr()}">
+      <label>반납 예정일 *</label>
+      <input type="date" id="coDueDate" value="${nextWeek}">
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="closeModal()">취소</button>
-      <button class="btn" onclick="confirmCheckout()">등록</button>
+      <button class="btn secondary" style="flex:1;" onclick="closeModal()">취소</button>
+      <button class="btn" style="flex:1.5;" onclick="confirmCheckout()">등록 완료</button>
     </div>
   `);
 }
+
 function toggleDueDate(){
   const checked = document.getElementById('coConsumable').checked;
   document.getElementById('dueDateField').style.display = checked ? 'none' : 'block';
 }
+
 async function confirmCheckout(){
   const itemId = document.getElementById('coItemId').value;
   const item = getItem(itemId);
-  if(!item){ showToast('물품을 찾을 수 없어요.'); return; }
+  if(!item){ showToast('물품을 찾을 수 없습니다.'); return; }
   const qty = parseInt(document.getElementById('coQty').value, 10);
   const dept = document.getElementById('coDept').value.trim();
   const person = document.getElementById('coPerson').value.trim();
@@ -875,7 +2413,7 @@ async function confirmCheckout(){
   const dueDate = consumable ? null : document.getElementById('coDueDate').value;
 
   if(!qty || qty < 1){ showToast('수량을 정확히 입력해주세요.'); return; }
-  if(qty > item.availableQty){ showToast('사용 가능한 수량(' + item.availableQty + '개)을 초과했어요.'); return; }
+  if(qty > item.availableQty){ showToast('가용 수량(' + item.availableQty + '개)을 초과했습니다.'); return; }
   if(!consumable && !dueDate){ showToast('반납 예정일을 입력해주세요.'); return; }
 
   item.availableQty -= qty;
@@ -883,14 +2421,14 @@ async function confirmCheckout(){
 
   state.transactions.push({
     id: uid(), itemId, type: 'checkout', qty, dept, person,
-    dueDate, consumable, returned: consumable, 
+    dueDate, consumable, returned: consumable,
     returnedAt: consumable ? new Date().toISOString() : null,
     createdAt: new Date().toISOString()
   });
 
   closeModal();
   await persistAndRender();
-  showToast(consumable ? '사용 처리했어요.' : '대여 등록을 완료했어요.');
+  showToast(consumable ? '소모 처리를 완료했습니다.' : '대여 등록을 완료했습니다.');
 }
 
 async function returnLoan(transactionId){
@@ -901,10 +2439,10 @@ async function returnLoan(transactionId){
   t.returned = true;
   t.returnedAt = new Date().toISOString();
   await persistAndRender();
-  showToast('반납 처리했어요.');
+  showToast('반납 처리를 완료했습니다.');
 }
 
-// ---------- init ----------
+// ---------- Tab Click Event Delegation ----------
 document.getElementById('tabbar').addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-tab]');
   if(!btn) return;
@@ -912,6 +2450,7 @@ document.getElementById('tabbar').addEventListener('click', (e) => {
   render();
 });
 
+// ---------- Initialization ----------
 initFirebase();
 startSync();
 </script>
