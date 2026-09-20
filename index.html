@@ -2367,11 +2367,16 @@ function openAddItemModal(){
   openModal('새 물품 등록', `
     <div class="photo-zone" id="photoZone">
       <div class="hint">물품 사진을 등록해두면 목록에서 빠르게 구분할 수 있어요 (선택)</div>
-      <div style="display:flex; justify-content:center; gap:8px;">
-        <label class="btn secondary" style="cursor:pointer;">
+      <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+        <label class="btn secondary" style="cursor:pointer; font-size:13px; padding:8px 14px; gap:6px;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-          사진 촬영 / 갤러리 선택
+          📷 사진 촬영
           <input type="file" accept="image/*" capture="environment" class="hidden-input" onchange="onAddItemPhoto(event)">
+        </label>
+        <label class="btn secondary" style="cursor:pointer; font-size:13px; padding:8px 14px; gap:6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+          🖼️ 갤러리 선택
+          <input type="file" accept="image/*" class="hidden-input" onchange="onAddItemPhoto(event)">
         </label>
       </div>
     </div>
@@ -2382,6 +2387,14 @@ function openAddItemModal(){
     <div class="field">
       <label>카테고리 (선택)</label>
       <input type="text" id="fCategory" placeholder="예: 미술용품, 악기, 교재, 행사용품">
+    </div>
+    <div class="field">
+      <label>관리 / 등록 부서</label>
+      <input type="text" id="fDept" placeholder="예: 영아팀, 유아팀, 유치팀, 통미팀, 초등1팀 등">
+    </div>
+    <div class="field">
+      <label>등록자 성명</label>
+      <input type="text" id="fRegistrant" placeholder="예: 김철수 선생님">
     </div>
     <div class="field">
       <label>보관 장소 *</label>
@@ -2414,12 +2427,21 @@ async function onAddItemPhoto(evt){
     addItemPhotoDataUrl = await fileToCompressedBase64(file, 600, 0.75);
     const zone = document.getElementById('photoZone');
     zone.innerHTML = `
-      <img src="${addItemPhotoDataUrl}" alt="미리보기">
-      <div>
-        <label class="btn secondary" style="font-size:12px; padding:6px 12px; cursor:pointer;">
-          사진 변경
+      <div style="text-align:center;">
+        <img src="${addItemPhotoDataUrl}" alt="미리보기" style="max-height:160px; border-radius:10px; margin-bottom:8px; border:1px solid var(--line);">
+      </div>
+      <div style="display:flex; justify-content:center; gap:6px; flex-wrap:wrap;">
+        <label class="btn secondary" style="font-size:11.5px; padding:6px 10px; cursor:pointer;">
+          📷 다시 촬영
           <input type="file" accept="image/*" capture="environment" class="hidden-input" onchange="onAddItemPhoto(event)">
         </label>
+        <label class="btn secondary" style="font-size:11.5px; padding:6px 10px; cursor:pointer;">
+          🖼️ 갤러리 변경
+          <input type="file" accept="image/*" class="hidden-input" onchange="onAddItemPhoto(event)">
+        </label>
+        <button type="button" class="btn danger-soft" style="font-size:11.5px; padding:6px 10px;" onclick="removeAddItemPhoto()">
+          사진 삭제
+        </button>
       </div>
     `;
   }catch(e){
@@ -2427,9 +2449,32 @@ async function onAddItemPhoto(evt){
   }
 }
 
+function removeAddItemPhoto(){
+  addItemPhotoDataUrl = null;
+  const zone = document.getElementById('photoZone');
+  if(!zone) return;
+  zone.innerHTML = `
+    <div class="hint">물품 사진을 등록해두면 목록에서 빠르게 구분할 수 있어요 (선택)</div>
+    <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+      <label class="btn secondary" style="cursor:pointer; font-size:13px; padding:8px 14px; gap:6px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+        📷 사진 촬영
+        <input type="file" accept="image/*" capture="environment" class="hidden-input" onchange="onAddItemPhoto(event)">
+      </label>
+      <label class="btn secondary" style="cursor:pointer; font-size:13px; padding:8px 14px; gap:6px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+        🖼️ 갤러리 선택
+        <input type="file" accept="image/*" class="hidden-input" onchange="onAddItemPhoto(event)">
+      </label>
+    </div>
+  `;
+}
+
 async function saveNewItem(){
   const name = document.getElementById('fName').value.trim();
   const category = document.getElementById('fCategory').value.trim();
+  const dept = document.getElementById('fDept').value.trim();
+  const registrant = document.getElementById('fRegistrant').value.trim();
   const locationId = document.getElementById('fLocation').value;
   const qty = parseInt(document.getElementById('fQty').value, 10);
   const isDisposable = !!document.getElementById('fIsDisposable').checked;
@@ -2438,6 +2483,7 @@ async function saveNewItem(){
   state.items.push({
     id: uid(), name, category, locationId,
     totalQty: qty, availableQty: qty,
+    dept, registrant,
     isDisposable,
     photo: addItemPhotoDataUrl || null,
     createdAt: new Date().toISOString()
@@ -2521,6 +2567,16 @@ function openItemDetail(itemId){
         <span style="font-size:13px; color:var(--text-muted);">카테고리</span>
         <strong style="font-size:13.5px;">${item.category ? escapeHtml(item.category) : '-'}</strong>
       </div>
+      ${item.dept ? `
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+        <span style="font-size:13px; color:var(--text-muted);">관리 / 등록 부서</span>
+        <strong style="font-size:13.5px;">${escapeHtml(item.dept)}</strong>
+      </div>` : ''}
+      ${item.registrant ? `
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+        <span style="font-size:13px; color:var(--text-muted);">등록자</span>
+        <strong style="font-size:13.5px;">${escapeHtml(item.registrant)}</strong>
+      </div>` : ''}
       ${item.isDisposable ? `
       <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
         <span style="font-size:13px; color:var(--text-muted);">물품 특성</span>
@@ -2681,14 +2737,51 @@ async function deleteItem(itemId){
 }
 
 // ---------- Items: Edit Modal ----------
+let editItemPhotoDataUrl = null;
+
 function openEditItemModal(itemId){
   const item = getItem(itemId);
   if(!item) return;
+  editItemPhotoDataUrl = item.photo || null;
   const locOptions = state.locations.map(l =>
     `<option value="${l.id}" ${l.id === item.locationId ? 'selected' : ''}>${escapeHtml(l.name)}</option>`
   ).join('');
 
   openModal('물품 정보 수정', `
+    <div class="photo-zone" id="editPhotoZone" style="margin-bottom:14px;">
+      ${editItemPhotoDataUrl ? `
+        <div style="text-align:center;">
+          <img src="${editItemPhotoDataUrl}" alt="미리보기" style="max-height:160px; border-radius:10px; margin-bottom:8px; border:1px solid var(--line);">
+        </div>
+        <div style="display:flex; justify-content:center; gap:6px; flex-wrap:wrap;">
+          <label class="btn secondary" style="font-size:11.5px; padding:6px 10px; cursor:pointer;">
+            📷 다시 촬영
+            <input type="file" accept="image/*" capture="environment" class="hidden-input" onchange="onEditItemPhoto(event)">
+          </label>
+          <label class="btn secondary" style="font-size:11.5px; padding:6px 10px; cursor:pointer;">
+            🖼️ 갤러리 변경
+            <input type="file" accept="image/*" class="hidden-input" onchange="onEditItemPhoto(event)">
+          </label>
+          <button type="button" class="btn danger-soft" style="font-size:11.5px; padding:6px 10px;" onclick="removeEditItemPhoto()">
+            사진 삭제
+          </button>
+        </div>
+      ` : `
+        <div class="hint">물품 사진을 등록하거나 변경할 수 있어요 (선택)</div>
+        <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+          <label class="btn secondary" style="cursor:pointer; font-size:13px; padding:8px 14px; gap:6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            📷 사진 촬영
+            <input type="file" accept="image/*" capture="environment" class="hidden-input" onchange="onEditItemPhoto(event)">
+          </label>
+          <label class="btn secondary" style="cursor:pointer; font-size:13px; padding:8px 14px; gap:6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            🖼️ 갤러리 선택
+            <input type="file" accept="image/*" class="hidden-input" onchange="onEditItemPhoto(event)">
+          </label>
+        </div>
+      `}
+    </div>
     <div class="field">
       <label>물품 이름</label>
       <input type="text" id="eName" value="${escapeHtml(item.name)}">
@@ -2696,6 +2789,14 @@ function openEditItemModal(itemId){
     <div class="field">
       <label>카테고리</label>
       <input type="text" id="eCategory" value="${escapeHtml(item.category || '')}">
+    </div>
+    <div class="field">
+      <label>관리 / 등록 부서</label>
+      <input type="text" id="eDept" value="${escapeHtml(item.dept || '')}" placeholder="예: 영아팀, 유아팀, 유치팀 등">
+    </div>
+    <div class="field">
+      <label>등록자 성명</label>
+      <input type="text" id="eRegistrant" value="${escapeHtml(item.registrant || '')}" placeholder="예: 김철수 선생님">
     </div>
     <div class="field">
       <label>보관 장소</label>
@@ -2718,11 +2819,64 @@ function openEditItemModal(itemId){
   `);
 }
 
+async function onEditItemPhoto(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  try{
+    editItemPhotoDataUrl = await fileToCompressedBase64(file, 600, 0.75);
+    const zone = document.getElementById('editPhotoZone');
+    if(!zone) return;
+    zone.innerHTML = `
+      <div style="text-align:center;">
+        <img src="${editItemPhotoDataUrl}" alt="미리보기" style="max-height:160px; border-radius:10px; margin-bottom:8px; border:1px solid var(--line);">
+      </div>
+      <div style="display:flex; justify-content:center; gap:6px; flex-wrap:wrap;">
+        <label class="btn secondary" style="font-size:11.5px; padding:6px 10px; cursor:pointer;">
+          📷 다시 촬영
+          <input type="file" accept="image/*" capture="environment" class="hidden-input" onchange="onEditItemPhoto(event)">
+        </label>
+        <label class="btn secondary" style="font-size:11.5px; padding:6px 10px; cursor:pointer;">
+          🖼️ 갤러리 변경
+          <input type="file" accept="image/*" class="hidden-input" onchange="onEditItemPhoto(event)">
+        </label>
+        <button type="button" class="btn danger-soft" style="font-size:11.5px; padding:6px 10px;" onclick="removeEditItemPhoto()">
+          사진 삭제
+        </button>
+      </div>
+    `;
+  }catch(e){
+    showToast('사진 처리에 실패했습니다.');
+  }
+}
+
+function removeEditItemPhoto(){
+  editItemPhotoDataUrl = null;
+  const zone = document.getElementById('editPhotoZone');
+  if(!zone) return;
+  zone.innerHTML = `
+    <div class="hint">물품 사진을 등록하거나 변경할 수 있어요 (선택)</div>
+    <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+      <label class="btn secondary" style="cursor:pointer; font-size:13px; padding:8px 14px; gap:6px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+        📷 사진 촬영
+        <input type="file" accept="image/*" capture="environment" class="hidden-input" onchange="onEditItemPhoto(event)">
+      </label>
+      <label class="btn secondary" style="cursor:pointer; font-size:13px; padding:8px 14px; gap:6px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+        🖼️ 갤러리 선택
+        <input type="file" accept="image/*" class="hidden-input" onchange="onEditItemPhoto(event)">
+      </label>
+    </div>
+  `;
+}
+
 async function saveEditItem(itemId){
   const item = getItem(itemId);
   if(!item) return;
   const name = document.getElementById('eName').value.trim();
   const category = document.getElementById('eCategory').value.trim();
+  const dept = document.getElementById('eDept').value.trim();
+  const registrant = document.getElementById('eRegistrant').value.trim();
   const locationId = document.getElementById('eLocation').value;
   const newTotal = parseInt(document.getElementById('eQty').value, 10);
   const isDisposable = !!document.getElementById('eIsDisposable').checked;
@@ -2730,10 +2884,13 @@ async function saveEditItem(itemId){
   const delta = newTotal - item.totalQty;
   item.name = name;
   item.category = category;
+  item.dept = dept;
+  item.registrant = registrant;
   item.locationId = locationId;
   item.totalQty = newTotal;
   item.availableQty = Math.max(0, item.availableQty + delta);
   item.isDisposable = isDisposable;
+  item.photo = editItemPhotoDataUrl;
   closeModal();
   await persistAndRender();
   showToast('물품 정보를 수정했습니다.');
