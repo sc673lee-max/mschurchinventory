@@ -1791,6 +1791,7 @@ function renderHome(){
           <div style="display:flex; gap:6px;">
             <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 완료</button>
             <button class="action-pill-btn danger" onclick="openReportLostModal('${t.id}')">분실</button>
+            <button class="action-pill-btn" style="color:var(--rose-600); border-color:rgba(225,29,72,0.35);" onclick="openDeleteLoanModal('${t.id}')">삭제</button>
           </div>
         </div>
       </div>`;
@@ -1837,6 +1838,7 @@ function renderHome(){
           <div style="display:flex; gap:6px;">
             <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 완료</button>
             <button class="action-pill-btn danger" onclick="openReportLostModal('${t.id}')">분실</button>
+            <button class="action-pill-btn" style="color:var(--rose-600); border-color:rgba(225,29,72,0.35);" onclick="openDeleteLoanModal('${t.id}')">삭제</button>
           </div>
         </div>
       </div>`;
@@ -1936,6 +1938,7 @@ function renderItems(){
         <div class="item-info">
           <div class="item-title-row">
             <div class="item-title">${escapeHtml(item.name)}</div>
+            ${item.isDisposable ? `<span class="badge-pill soft" style="font-size:10.5px; padding:1px 6px; background:var(--amber-100); color:var(--amber-600); border-color:transparent; font-weight:700;">일회용품</span>` : ''}
             ${item.category ? `<span class="item-category-tag">${escapeHtml(item.category)}</span>` : ''}
           </div>
           <div class="item-meta">
@@ -2038,6 +2041,7 @@ function renderLoans(){
           <div class="card-actions-col">
             <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 완료</button>
             <button class="action-pill-btn danger" onclick="openReportLostModal('${t.id}')">분실 신고</button>
+            <button class="action-pill-btn" style="color:var(--rose-600); border-color:rgba(225,29,72,0.35);" onclick="openDeleteLoanModal('${t.id}')">대여 삭제</button>
           </div>
         </div>`;
       });
@@ -2076,6 +2080,7 @@ function renderLoans(){
           <div class="card-actions-col">
             <button class="action-pill-btn" onclick="returnLoan('${t.id}')">반납 처리</button>
             <button class="action-pill-btn danger" onclick="openReportLostModal('${t.id}')">분실 신고</button>
+            <button class="action-pill-btn" style="color:var(--rose-600); border-color:rgba(225,29,72,0.35);" onclick="openDeleteLoanModal('${t.id}')">대여 삭제</button>
           </div>
         </div>`;
       });
@@ -2386,6 +2391,15 @@ function openAddItemModal(){
       <label>보유 수량 *</label>
       <input type="number" id="fQty" min="1" value="1">
     </div>
+    <div class="field">
+      <label class="checkline" style="background:var(--primary-50); padding:10px 14px; border-radius:var(--radius-md); border:1px solid rgba(64,145,108,0.25); cursor:pointer;">
+        <input type="checkbox" id="fIsDisposable">
+        <span style="font-weight:600; color:var(--primary-900);">일회용품 (1회 사용 후 폐기/소모되는 물품)</span>
+      </label>
+      <div style="font-size:12px; color:var(--text-muted); margin-top:4px; padding-left:2px;">
+        체크 시 대여 등록할 때 자동으로 '소모성 물품'으로 체크됩니다.
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn secondary" style="flex:1;" onclick="closeModal()">취소</button>
       <button class="btn" style="flex:1.5;" onclick="saveNewItem()">등록 완료</button>
@@ -2418,11 +2432,13 @@ async function saveNewItem(){
   const category = document.getElementById('fCategory').value.trim();
   const locationId = document.getElementById('fLocation').value;
   const qty = parseInt(document.getElementById('fQty').value, 10);
+  const isDisposable = !!document.getElementById('fIsDisposable').checked;
   if(!name){ showToast('물품 이름을 입력해주세요.'); return; }
   if(!qty || qty < 1){ showToast('수량을 정확히 입력해주세요.'); return; }
   state.items.push({
     id: uid(), name, category, locationId,
     totalQty: qty, availableQty: qty,
+    isDisposable,
     photo: addItemPhotoDataUrl || null,
     createdAt: new Date().toISOString()
   });
@@ -2436,6 +2452,7 @@ function openItemDetail(itemId){
   const item = getItem(itemId);
   if(!item) return;
   const loc = getLocation(item.locationId);
+  const activeLoansList = state.transactions.filter(t => t.itemId === itemId && t.type === 'checkout' && !t.consumable && !t.returned);
   const history = state.transactions.filter(t => t.itemId === itemId)
     .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||'')).slice(0, 8);
 
@@ -2462,6 +2479,34 @@ function openItemDetail(itemId){
     }).join('');
   }
 
+  let activeLoansHtml = '';
+  if(activeLoansList.length > 0){
+    activeLoansHtml = `
+    <div style="font-size:13.5px; font-weight:700; color:var(--text-main); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+      <span>현재 대여 중인 물품 (${activeLoansList.length}건)</span>
+      <span style="font-size:12px; color:var(--rose-600); font-weight:600;">개별 삭제 가능</span>
+    </div>
+    <div style="background:var(--surface-alt); border-radius:var(--radius-md); padding:10px 14px; border:1px solid var(--line); margin-bottom:18px;">
+      ${activeLoansList.map(t => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); gap:8px;">
+          <div>
+            <div style="font-weight:600; font-size:13px; color:var(--text-main);">
+              ${escapeHtml(t.dept || '부서 미입력')} · ${escapeHtml(t.person || '담당자')} (${t.qty}개)
+            </div>
+            <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
+              반납 예정일: ${fmtDate(t.dueDate)}
+            </div>
+          </div>
+          <div style="display:flex; gap:6px; flex-shrink:0;">
+            <button class="action-pill-btn" style="padding:3px 8px; font-size:11.5px;" onclick="returnLoan('${t.id}')">반납</button>
+            <button class="action-pill-btn" style="padding:3px 8px; font-size:11.5px; color:var(--rose-600); border-color:rgba(225,29,72,0.35);" onclick="openDeleteLoanModal('${t.id}')">대여 삭제</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    `;
+  }
+
   const ratio = item.totalQty > 0 ? Math.min(100, Math.round((item.availableQty / item.totalQty) * 100)) : 0;
 
   openModal(item.name, `
@@ -2476,9 +2521,20 @@ function openItemDetail(itemId){
         <span style="font-size:13px; color:var(--text-muted);">카테고리</span>
         <strong style="font-size:13.5px;">${item.category ? escapeHtml(item.category) : '-'}</strong>
       </div>
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:13px; color:var(--text-muted);">현재 가용 재고</span>
-        <span style="font-size:15px; font-weight:800; color:var(--primary-700);">${item.availableQty} / ${item.totalQty}개</span>
+      ${item.isDisposable ? `
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+        <span style="font-size:13px; color:var(--text-muted);">물품 특성</span>
+        <span class="badge-pill soft" style="font-size:11.5px; background:var(--amber-100); color:var(--amber-600); border-color:transparent; font-weight:700;">일회용품 (소모성)</span>
+      </div>` : ''}
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <span style="font-size:13px; color:var(--text-muted);">현재 가용 재고 (보관 중)</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:15px; font-weight:800; color:var(--primary-700);">${item.availableQty} / ${item.totalQty}개</span>
+          ${item.availableQty > 0 ? `
+          <button class="action-pill-btn" style="padding:2px 8px; font-size:11px; color:var(--rose-600); border-color:rgba(225,29,72,0.3);" onclick="deleteAvailableStock('${item.id}')">
+            남은 물품 삭제
+          </button>` : ''}
+        </div>
       </div>
       <div class="stock-meter-bg" style="width:100%; height:6px; margin-top:8px;">
         <div class="stock-meter-fill ${item.availableQty <= 0 ? 'low' : ''}" style="width:${ratio}%;"></div>
@@ -2499,9 +2555,11 @@ function openItemDetail(itemId){
         정보 수정
       </button>
       <button class="btn danger-soft" onclick="deleteItem('${item.id}')">
-        물품 삭제
+        물품 전체 삭제
       </button>
     </div>
+
+    ${activeLoansHtml}
 
     <div style="font-size:13.5px; font-weight:700; color:var(--text-main); margin-bottom:8px;">
       최근 이용 내역
@@ -2512,13 +2570,109 @@ function openItemDetail(itemId){
   `);
 }
 
-async function deleteItem(itemId){
-  const hasActiveLoan = state.transactions.some(t => t.itemId === itemId && t.type === 'checkout' && !t.consumable && !t.returned);
-  if(hasActiveLoan){
-    alert('현재 대여 중인 물품이므로 삭제할 수 없습니다. 먼저 반납 처리해주세요.');
+// 남아 있는 물품(가용 재고) 개별 삭제
+async function deleteAvailableStock(itemId){
+  const item = getItem(itemId);
+  if(!item || item.availableQty <= 0){
+    showToast('삭제할 남아 있는 물품이 없습니다.');
     return;
   }
-  if(!confirm('이 물품을 삭제할까요? 관련 이용 기록도 함께 삭제됩니다.')) return;
+  const qtyToDelete = item.availableQty;
+  if(!confirm(`현재 보관 중인 남아 있는 물품 ${qtyToDelete}개를 삭제하시겠습니까?\n(대여 중인 물품은 그대로 유지됩니다)`)) return;
+
+  item.totalQty = Math.max(0, item.totalQty - qtyToDelete);
+  item.availableQty = 0;
+
+  // 만약 대여 중인 물품도 없다면 물품 자체 삭제 처리
+  const hasActiveLoan = state.transactions.some(t => t.itemId === itemId && t.type === 'checkout' && !t.consumable && !t.returned);
+  if(!hasActiveLoan && item.totalQty <= 0){
+    state.items = state.items.filter(i => i.id !== itemId);
+    state.transactions = state.transactions.filter(t => t.itemId !== itemId);
+    closeModal();
+    await persistAndRender();
+    showToast('남아 있는 물품 및 물품 정보가 삭제되었습니다.');
+    return;
+  }
+
+  await persistAndRender();
+  openItemDetail(itemId);
+  showToast(`남아 있는 물품 ${qtyToDelete}개를 삭제했습니다.`);
+}
+
+// 대여 물품 개별 삭제 모달
+function openDeleteLoanModal(transactionId){
+  const t = state.transactions.find(x => x.id === transactionId);
+  if(!t) return;
+  const item = getItem(t.itemId);
+  const itemName = item ? item.name : '대여 물품';
+
+  openModal('대여 물품 삭제', `
+    <div style="margin-bottom:16px;">
+      <div style="font-size:15px; font-weight:700; color:var(--text-main); margin-bottom:4px;">${escapeHtml(itemName)} 대여 건 삭제</div>
+      <div style="font-size:13px; color:var(--text-muted); line-height:1.5;">
+        대여 부서: <strong>${escapeHtml(t.dept || '미입력')}</strong> · 담당: <strong>${escapeHtml(t.person || '미입력')}</strong><br>
+        대여 수량: <strong style="color:var(--rose-600);">${t.qty}개</strong>
+      </div>
+    </div>
+
+    <div style="font-size:13px; color:var(--text-main); margin-bottom:12px; font-weight:600;">
+      삭제 방식을 선택해주세요:
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:18px;">
+      <button class="btn danger" style="padding:12px; text-align:left; display:flex; flex-direction:column; gap:3px; background:var(--rose-600); border-color:var(--rose-600); color:#fff;" onclick="confirmDeleteLoan('${t.id}', 'permanent')">
+        <div style="font-weight:700; font-size:13.5px;">🗑️ 대여 물품 영구 삭제 (재고 폐기)</div>
+        <div style="font-size:11.5px; opacity:0.9;">빌려간 물품(${t.qty}개)을 폐기/삭제하여 총 수량에서 차감하고 대여 기록을 삭제합니다.</div>
+      </button>
+
+      <button class="btn secondary" style="padding:12px; text-align:left; display:flex; flex-direction:column; gap:3px;" onclick="confirmDeleteLoan('${t.id}', 'cancel')">
+        <div style="font-weight:700; font-size:13.5px; color:var(--text-main);">↩️ 대여 등록 취소 (재고 복구)</div>
+        <div style="font-size:11.5px; color:var(--text-muted);">잘못 등록된 대여 건을 취소하고 가용 재고로 ${t.qty}개를 다시 반환합니다.</div>
+      </button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn secondary" style="flex:1;" onclick="closeModal()">취소</button>
+    </div>
+  `);
+}
+
+async function confirmDeleteLoan(transactionId, mode){
+  const t = state.transactions.find(x => x.id === transactionId);
+  if(!t) return;
+  const item = getItem(t.itemId);
+
+  if(mode === 'permanent'){
+    if(item){
+      item.totalQty = Math.max(0, item.totalQty - t.qty);
+    }
+    state.transactions = state.transactions.filter(x => x.id !== transactionId);
+    closeModal();
+    await persistAndRender();
+    showToast('대여 물품을 영구 삭제(총 수량 차감)했습니다.');
+  } else if(mode === 'cancel'){
+    if(item){
+      item.availableQty += t.qty;
+    }
+    state.transactions = state.transactions.filter(x => x.id !== transactionId);
+    closeModal();
+    await persistAndRender();
+    showToast('대여 등록을 취소하고 재고로 복구했습니다.');
+  }
+}
+
+// 물품 전체 삭제
+async function deleteItem(itemId){
+  const item = getItem(itemId);
+  if(!item) return;
+  const hasActiveLoan = state.transactions.some(t => t.itemId === itemId && t.type === 'checkout' && !t.consumable && !t.returned);
+  
+  if(hasActiveLoan){
+    if(!confirm('현재 반납되지 않은 대여 물품이 있습니다.\n대여 물품과 남아 있는 물품을 모두 포함하여 이 물품을 완전히 삭제하시겠습니까?')) return;
+  } else {
+    if(!confirm('이 물품을 삭제할까요? 관련 이용 기록도 함께 삭제됩니다.')) return;
+  }
+
   state.items = state.items.filter(i => i.id !== itemId);
   state.transactions = state.transactions.filter(t => t.itemId !== itemId);
   closeModal();
@@ -2551,6 +2705,12 @@ function openEditItemModal(itemId){
       <label>총 수량</label>
       <input type="number" id="eQty" min="0" value="${item.totalQty}">
     </div>
+    <div class="field">
+      <label class="checkline" style="background:var(--primary-50); padding:10px 14px; border-radius:var(--radius-md); border:1px solid rgba(64,145,108,0.25); cursor:pointer;">
+        <input type="checkbox" id="eIsDisposable" ${item.isDisposable ? 'checked' : ''}>
+        <span style="font-weight:600; color:var(--primary-900);">일회용품 (1회 사용 후 폐기/소모되는 물품)</span>
+      </label>
+    </div>
     <div class="modal-actions">
       <button class="btn secondary" style="flex:1;" onclick="closeModal()">취소</button>
       <button class="btn" style="flex:1.5;" onclick="saveEditItem('${item.id}')">수정 완료</button>
@@ -2565,6 +2725,7 @@ async function saveEditItem(itemId){
   const category = document.getElementById('eCategory').value.trim();
   const locationId = document.getElementById('eLocation').value;
   const newTotal = parseInt(document.getElementById('eQty').value, 10);
+  const isDisposable = !!document.getElementById('eIsDisposable').checked;
   if(!name){ showToast('물품 이름을 입력해주세요.'); return; }
   const delta = newTotal - item.totalQty;
   item.name = name;
@@ -2572,6 +2733,7 @@ async function saveEditItem(itemId){
   item.locationId = locationId;
   item.totalQty = newTotal;
   item.availableQty = Math.max(0, item.availableQty + delta);
+  item.isDisposable = isDisposable;
   closeModal();
   await persistAndRender();
   showToast('물품 정보를 수정했습니다.');
@@ -2611,25 +2773,32 @@ async function confirmStockIn(itemId){
 // ---------- Checkout (대여/사용) Modal ----------
 function openCheckoutModal(itemId){
   let itemSelectHtml = '';
+  let isDisposable = false;
+
   if(itemId){
     const item = getItem(itemId);
+    if(item) isDisposable = !!item.isDisposable;
     itemSelectHtml = `
       <div class="field">
-        <label>대여 물품</label>
-        <input type="text" value="${escapeHtml(item.name)} (대여가능: ${item.availableQty}개)" disabled>
+        <label>대여 물품 *</label>
+        <input type="text" value="${escapeHtml(item ? item.name : '')} ${isDisposable ? '[일회용품]' : ''} (대여가능: ${item ? item.availableQty : 0}개)" disabled>
         <input type="hidden" id="coItemId" value="${itemId}">
       </div>`;
   } else {
-    const options = state.items.filter(i => i.availableQty > 0)
-      .map(i => `<option value="${i.id}">${escapeHtml(i.name)} (대여가능: ${i.availableQty}개)</option>`).join('');
-    if(!options){
+    const availableItems = state.items.filter(i => i.availableQty > 0);
+    if(availableItems.length === 0){
       alert('현재 대여하거나 사용할 수 있는 물품이 없습니다.');
       return;
     }
+    isDisposable = !!availableItems[0].isDisposable;
+    const options = availableItems.map(i => 
+      `<option value="${i.id}">${escapeHtml(i.name)} ${i.isDisposable ? '[일회용품]' : ''} (대여가능: ${i.availableQty}개)</option>`
+    ).join('');
+
     itemSelectHtml = `
       <div class="field">
-        <label>대여할 물품 선택</label>
-        <select id="coItemId">${options}</select>
+        <label>대여할 물품 선택 *</label>
+        <select id="coItemId" onchange="onCheckoutItemChanged(this.value)">${options}</select>
       </div>`;
   }
 
@@ -2645,16 +2814,16 @@ function openCheckoutModal(itemId){
     </div>
     <div class="field">
       <label>사용 부서 *</label>
-      <input type="text" id="coDept" placeholder="예: 유아부, 유치부, 초등부, 청소년부">
+      <input type="text" id="coDept" placeholder="예: 영아팀, 유아팀, 유치팀, 통미팀, 초등1팀 등">
     </div>
     <div class="field">
-      <label>담당자 성명</label>
+      <label>담당자 성명 *</label>
       <input type="text" id="coPerson" placeholder="예: 김철수 선생님">
     </div>
     <div class="field">
       <label class="checkline">
-        <input type="checkbox" id="coConsumable" onchange="toggleDueDate()">
-        <span>소모성 물품 (행사 사용 등으로 반납하지 않음)</span>
+        <input type="checkbox" id="coConsumable" ${isDisposable ? 'checked' : ''} onchange="toggleDueDate()">
+        <span>소모성 물품 (행사 사용 등으로 반납하지 않음)${isDisposable ? ' <strong style="color:var(--amber-600); font-size:12px;">(일회용품 기본 적용)</strong>' : ''}</span>
       </label>
     </div>
     <div class="field" id="pickupDateField">
@@ -2670,6 +2839,21 @@ function openCheckoutModal(itemId){
       <button class="btn" style="flex:1.5;" onclick="confirmCheckout()">등록 완료</button>
     </div>
   `);
+
+  // 일회용품인 경우 반납일 필드 초기 숨김 처리
+  if(isDisposable){
+    toggleDueDate();
+  }
+}
+
+function onCheckoutItemChanged(selItemId){
+  const item = getItem(selItemId);
+  if(!item) return;
+  const cb = document.getElementById('coConsumable');
+  if(cb){
+    cb.checked = !!item.isDisposable;
+    toggleDueDate();
+  }
 }
 
 function onPickupDateChanged(){
@@ -2690,7 +2874,7 @@ function toggleDueDate(){
 async function confirmCheckout(){
   const itemId = document.getElementById('coItemId').value;
   const item = getItem(itemId);
-  if(!item){ showToast('물품을 찾을 수 없습니다.'); return; }
+  if(!itemId || !item){ showToast('대여할 물품을 선택해주세요.'); return; }
   const qty = parseInt(document.getElementById('coQty').value, 10);
   const dept = document.getElementById('coDept').value.trim();
   const person = document.getElementById('coPerson').value.trim();
@@ -2698,8 +2882,10 @@ async function confirmCheckout(){
   const pickupDate = document.getElementById('coPickupDate').value || todayStr();
   const dueDate = consumable ? null : document.getElementById('coDueDate').value;
 
-  if(!qty || qty < 1){ showToast('수량을 정확히 입력해주세요.'); return; }
+  if(!qty || qty < 1){ showToast('대여 수량을 정확히 입력해주세요.'); return; }
   if(qty > item.availableQty){ showToast('가용 수량(' + item.availableQty + '개)을 초과했습니다.'); return; }
+  if(!dept){ showToast('사용 부서를 입력해주세요.'); return; }
+  if(!person){ showToast('담당자 성명을 입력해주세요.'); return; }
   if(!pickupDate){ showToast('픽업 예정일을 입력해주세요.'); return; }
   if(!consumable && !dueDate){ showToast('반납 예정일을 입력해주세요.'); return; }
   if(!consumable && dueDate && pickupDate && dueDate < pickupDate){
