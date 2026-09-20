@@ -198,6 +198,27 @@ button, input, select, textarea {
   100% { transform: scale(0.95); opacity: 0.8; }
 }
 
+.manual-header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: var(--primary-50);
+  border: 1px solid rgba(64, 145, 108, 0.3);
+  color: var(--primary-800);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+.manual-header-btn:hover {
+  background: var(--primary-100);
+  border-color: var(--primary-600);
+  color: var(--primary-900);
+}
+
 /* Content Area */
 main#content {
   flex: 1;
@@ -1352,9 +1373,17 @@ main#content {
           <div class="sub" id="pageSub">보관 장소와 대여 현황을 한눈에 관리해요</div>
         </div>
       </div>
-      <div class="sync-badge" id="syncBadge">
-        <span class="sync-dot"></span>
-        <span id="syncText">연결 확인 중</span>
+      <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+        <div class="sync-badge" id="syncBadge">
+          <span class="sync-dot"></span>
+          <span id="syncText">연결 확인 중</span>
+        </div>
+        <button class="manual-header-btn" onclick="openManualModal()" title="사용자 매뉴얼 열기">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          </svg>
+          <span>매뉴얼</span>
+        </button>
       </div>
     </div>
   </header>
@@ -1740,6 +1769,20 @@ function renderHome(){
         </div>
       </button>
     </div>
+  </div>
+  `;
+
+  // Manual Banner Card
+  html += `
+  <div style="background:linear-gradient(135deg, #F2F9F5, #E8F5EE); border:1px solid rgba(64,145,108,0.25); border-radius:var(--radius-md); padding:12px 14px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openManualModal()">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="font-size:20px;">📖</span>
+      <div>
+        <div style="font-size:13.5px; font-weight:700; color:var(--primary-900);">사용자 매뉴얼 보기</div>
+        <div style="font-size:11.5px; color:var(--primary-700); margin-top:1px;">대여·반납, 일회용품, 개별 삭제, 사진 등록 안내</div>
+      </div>
+    </div>
+    <span class="action-pill-btn" style="background:#FFF; border-color:rgba(64,145,108,0.3); color:var(--primary-800); font-weight:700; font-size:11.5px; padding:4px 10px; flex-shrink:0;">열람하기 ➡️</span>
   </div>
   `;
 
@@ -2273,6 +2316,100 @@ function openModal(title, bodyHtml){
   });
 }
 function closeModal(){ modalRoot.innerHTML = ''; }
+
+// ---------- Manual Modal System ----------
+function openManualModal(){
+  openModal('📖 사용자 매뉴얼', `
+    <div style="margin-bottom:14px; background:linear-gradient(135deg, var(--primary-50), #E8F5EE); border:1px solid rgba(64,145,108,0.25); border-radius:var(--radius-md); padding:12px 14px;">
+      <div style="font-size:12.5px; color:var(--primary-900); line-height:1.5;">
+        <strong>발행:</strong> 명선교회 교회학교지원팀<br>
+        <strong>협조/지원:</strong> 교육자료개발팀 · <strong>적용 대상:</strong> 교육 부서
+      </div>
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+        <a href="church_inventory_manual.pdf" download="명선교회_교회학교_물품관리시스템_사용자매뉴얼.pdf" class="btn" style="padding:6px 12px; font-size:12px; text-decoration:none; display:inline-flex; align-items:center; gap:5px; background:var(--primary-700); color:#FFF;">
+          📥 PDF 다운로드
+        </a>
+        <a href="manual_print.html" target="_blank" class="btn secondary" style="padding:6px 12px; font-size:12px; text-decoration:none; display:inline-flex; align-items:center; gap:5px;">
+          🖨️ 인쇄/전체보기
+        </a>
+      </div>
+    </div>
+
+    <div style="max-height:60vh; overflow-y:auto; padding-right:4px; font-size:13px; line-height:1.6; color:var(--text-main);">
+      
+      <!-- Section 1 -->
+      <div style="margin-bottom:16px; background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 14px;">
+        <div style="font-weight:700; color:var(--primary-800); font-size:14px; margin-bottom:6px;">
+          1. 물품 대여 및 반납 가이드
+        </div>
+        <ul style="padding-left:18px; margin:0; color:var(--text-main);">
+          <li><strong>대여 시 4대 필수 항목</strong>: 대여 물품, 수량, 사용 부서, 담당자 성명을 반드시 입력해야 등록됩니다.</li>
+          <li><strong>일회용품 / 소모품</strong>: 종이컵, 도화지 등 1회 사용 후 폐기되는 물품은 대여 시 <em>'소모성 물품'</em>이 자동 체크되며 <strong>반납 절차가 필요 없습니다.</strong></li>
+          <li><strong>반납 완료</strong>: 사용 후 물품을 제자리에 보관하고, <em>[대여 현황]</em> 탭에서 <strong>[반납 완료]</strong>를 누르면 재고가 정상 복원됩니다.</li>
+        </ul>
+      </div>
+
+      <!-- Section 2 -->
+      <div style="margin-bottom:16px; background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 14px;">
+        <div style="font-weight:700; color:var(--primary-800); font-size:14px; margin-bottom:6px;">
+          2. 물품 등록 및 수정 가이드
+        </div>
+        <ul style="padding-left:18px; margin:0; color:var(--text-main);">
+          <li><strong>사진 촬영 vs 갤러리 선택</strong>:
+            <br>- <strong>📷 사진 촬영</strong>: 카메라가 즉시 켜져 현장에서 실물을 바로 촬영합니다.
+            <br>- <strong>🖼️ 갤러리 선택</strong>: 스마트폰 사진 앨범에서 저장된 사진을 선택합니다.
+          </li>
+          <li><strong>부서 및 등록자 성명</strong>: 물품을 주로 관리하는 부서와 등록자 이름을 입력해 관리 책임과 소속을 명확히 합니다.</li>
+          <li><strong>일회용품 지정</strong>: 1회 사용 후 버려지는 물품은 체크해두면 대여 시 소모성으로 자동 처리됩니다.</li>
+        </ul>
+      </div>
+
+      <!-- Section 3 -->
+      <div style="margin-bottom:16px; background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 14px;">
+        <div style="font-weight:700; color:var(--primary-800); font-size:14px; margin-bottom:6px;">
+          3. 대여 및 재고 개별 삭제 가이드
+        </div>
+        <ul style="padding-left:18px; margin:0; color:var(--text-main);">
+          <li><strong>대여 중인 물품 개별 삭제</strong>: 대여 카드에서 <strong>[대여 삭제]</strong>를 누르면 두 가지 중 선택할 수 있습니다:
+            <br>- <em>🗑️ 영구 삭제 (재고 폐기)</em>: 파손/분실되어 회수 불가 시 총 수량에서 차감.
+            <br>- <em>↩️ 대여 취소 (재고 복구)</em>: 잘못 대여 등록한 건을 취소하고 가용 재고로 복구.
+          </li>
+          <li><strong>남은 물품 개별 삭제</strong>: 물품 상세 화면에서 보관 중인 잔여 재고만 0개로 폐기 삭제할 수 있습니다 (대여 중인 건은 유지).</li>
+          <li><strong>물품 전체 삭제</strong>: 물품 상세에서 <strong>[물품 전체 삭제]</strong> 클릭 시 대여 건과 잔여 물품을 일괄 삭제할 수 있습니다.</li>
+        </ul>
+      </div>
+
+      <!-- Section 4 -->
+      <div style="margin-bottom:16px; background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 14px;">
+        <div style="font-weight:700; color:var(--primary-800); font-size:14px; margin-bottom:6px;">
+          4. 분실 신고 및 재고 복구
+        </div>
+        <ul style="padding-left:18px; margin:0; color:var(--text-main);">
+          <li><strong>분실 신고</strong>: 대여 카드에서 <strong>[분실 신고]</strong>를 누르거나 대여현황의 [분실 내역]에서 신고하면 총 수량에서 차감됩니다.</li>
+          <li><strong>재고 복구</strong>: 잃어버렸던 물품을 다시 찾은 경우, <em>[분실 내역]</em> 탭에서 <strong>[재고 복구]</strong>를 누르면 즉시 재고가 다시 살아납니다.</li>
+        </ul>
+      </div>
+
+      <!-- Section 5 -->
+      <div style="margin-bottom:8px; background:var(--surface-alt); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 14px;">
+        <div style="font-weight:700; color:var(--primary-800); font-size:14px; margin-bottom:6px;">
+          5. 자주 묻는 질문 (FAQ)
+        </div>
+        <div style="font-size:12.5px; line-height:1.5;">
+          <strong>Q. 갤러리(앨범) 사진이 안 열려요.</strong><br>
+          👉 [새 물품 등록] 창에서 [📷 사진 촬영] 대신 <strong>[🖼️ 갤러리 선택]</strong> 버튼을 누르시면 앨범이 열립니다.<br><br>
+          <strong>Q. 홈 화면에 바로가기를 추가할 수 있나요?</strong><br>
+          👉 사파리(공유 버튼 ➡️ 홈 화면에 추가) 또는 크롬(메뉴 ➡️ 앱 설치/홈 화면 추가)을 이용하시면 앱처럼 바탕화면에서 원터치로 접속하실 수 있습니다.
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-actions" style="margin-top:14px;">
+      <button class="btn" style="flex:1;" onclick="closeModal()">확인 완료</button>
+    </div>
+  `);
+}
 
 // ---------- Location Actions ----------
 function openAddLocationModal(){
